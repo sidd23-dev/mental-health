@@ -120,12 +120,6 @@
             <input type="password" id="loginPassword" placeholder="Enter password">
         </div>
 
-        <div class="input-group">
-            <label>OTP</label>
-            <input type="text" id="loginOtp" placeholder="Enter your OTP">
-        </div>
-
-        <button class="btn" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
         <button class="btn" id="loginBtn" onclick="loginUser()">Login</button>
 
         <p class="toggle-link" onclick="showSignup()">Create an account</p>
@@ -163,7 +157,28 @@
             <input type="password" id="signupConfirmPassword" placeholder="Re-enter password">
         </div>
 
-        <button class="btn" onclick="signupUser()">Sign Up</button>
+        <button class="btn" onclick="signupUser()">Sign Up & Send OTP</button>
+
+        <p class="toggle-link" onclick="showLogin()">Back to Login</p>
+    </div>
+
+    <!-- SIGNUP OTP VERIFY PAGE -->
+    <div id="otpPage" style="display: none;">
+        <h2>Verify Email</h2>
+
+        <p class="error" id="otpError"></p>
+        <p class="success" id="otpSuccess"></p>
+
+        <p style="font-size: 14px;">
+            OTP sent to <span id="otpEmailText" style="font-weight: bold;"></span>.
+        </p>
+
+        <div class="input-group">
+            <label>OTP</label>
+            <input type="text" id="signupOtp" placeholder="Enter OTP from email">
+        </div>
+
+        <button class="btn" onclick="verifySignupOtp()">Verify OTP</button>
 
         <p class="toggle-link" onclick="showLogin()">Back to Login</p>
     </div>
@@ -173,16 +188,32 @@
 <script>
     const API_URL = 'http://localhost:5000';
 
+    let currentSignupEmail = "";
+
     function showSignup() {
-        document.getElementById("loginPage").style.display = "none";
+        hideAllPages();
         document.getElementById("signupPage").style.display = "block";
         clearMessages();
     }
 
     function showLogin() {
-        document.getElementById("signupPage").style.display = "none";
+        hideAllPages();
         document.getElementById("loginPage").style.display = "block";
         clearMessages();
+    }
+
+    function showOtpPage(email) {
+        hideAllPages();
+        currentSignupEmail = email;
+        document.getElementById("otpEmailText").innerText = email;
+        document.getElementById("otpPage").style.display = "block";
+        clearMessages();
+    }
+
+    function hideAllPages() {
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("signupPage").style.display = "none";
+        document.getElementById("otpPage").style.display = "none";
     }
 
     function clearMessages() {
@@ -192,19 +223,19 @@
         });
     }
 
-    function showSignupError(msg) {
-        const el = document.getElementById("signupError");
+    function showError(id, msg) {
+        const el = document.getElementById(id);
         el.innerText = msg;
         el.style.display = "block";
     }
 
-    function showLoginError(msg) {
-        const el = document.getElementById("loginError");
+    function showSuccess(id, msg) {
+        const el = document.getElementById(id);
         el.innerText = msg;
         el.style.display = "block";
     }
 
-    // SIGNUP
+    // SIGNUP: create account + send OTP
     async function signupUser() {
         clearMessages();
 
@@ -215,12 +246,12 @@
         const cpass = document.getElementById("signupConfirmPassword").value.trim();
 
         if (!fname || !lname || !email || !pass || !cpass) {
-            showSignupError("All fields are required!");
+            showError("signupError", "All fields are required!");
             return;
         }
 
         if (pass !== cpass) {
-            showSignupError("Passwords do not match!");
+            showError("signupError", "Passwords do not match!");
             return;
         }
 
@@ -239,76 +270,67 @@
             const data = await res.json();
 
             if (res.ok) {
-                const el = document.getElementById("signupSuccess");
-                el.innerText = data.message || "Account created successfully! Please login.";
-                el.style.display = "block";
-
+                // Clear signup form
                 document.getElementById("fname").value = "";
                 document.getElementById("lname").value = "";
                 document.getElementById("signupEmail").value = "";
                 document.getElementById("signupPassword").value = "";
                 document.getElementById("signupConfirmPassword").value = "";
 
-                setTimeout(showLogin, 1500);
+                // Go to OTP page
+                showOtpPage(email);
             } else {
-                showSignupError(data.message || "Signup failed!");
+                showError("signupError", data.message || "Signup failed!");
             }
         } catch (err) {
-            showSignupError("Server error. Please try again.");
             console.error("Signup error:", err);
+            showError("signupError", "Server error. Please try again.");
         }
     }
 
-    // SEND OTP
-    async function sendOTP() {
+    // VERIFY SIGNUP OTP
+    async function verifySignupOtp() {
         clearMessages();
 
-        const email = document.getElementById("loginEmail").value.trim();
+        const otp = document.getElementById("signupOtp").value.trim();
+        const email = currentSignupEmail;
 
-        if (!email) {
-            showLoginError("Please enter your email to get OTP.");
+        if (!email || !otp) {
+            showError("otpError", "Email or OTP missing.");
             return;
         }
 
-        const btn = document.getElementById("sendOtpBtn");
-        btn.disabled = true;
-        btn.innerText = "Sending...";
-
         try {
-            const res = await fetch(`${API_URL}/api/patient/send-otp`, {
+            const res = await fetch(`${API_URL}/api/patient/verify-signup-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
+                body: JSON.stringify({ email, otp })
             });
 
             const data = await res.json();
 
             if (res.ok) {
-                const el = document.getElementById("loginSuccess");
-                el.innerText = data.message || "OTP sent to your email!";
-                el.style.display = "block";
+                showSuccess("otpSuccess", data.message || "Email verified! You can now login.");
+                // After short delay, go to login page
+                setTimeout(showLogin, 1500);
             } else {
-                showLoginError(data.message || "Failed to send OTP.");
+                showError("otpError", data.message || "OTP verification failed.");
             }
         } catch (err) {
-            showLoginError("Server error while sending OTP.");
-            console.error("OTP error:", err);
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "Send OTP";
+            console.error("OTP verify error:", err);
+            showError("otpError", "Server error. Please try again.");
         }
     }
 
-    // LOGIN
+    // LOGIN (email + password only)
     async function loginUser() {
         clearMessages();
 
         const email = document.getElementById("loginEmail").value.trim();
         const password = document.getElementById("loginPassword").value.trim();
-        const otp = document.getElementById("loginOtp").value.trim();
 
-        if (!email || !password || !otp) {
-            showLoginError("Enter email, password, and OTP.");
+        if (!email || !password) {
+            showError("loginError", "Enter email and password.");
             return;
         }
 
@@ -320,7 +342,7 @@
             const res = await fetch(`${API_URL}/api/patient/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, otp })
+                body: JSON.stringify({ email, password })
             });
 
             const data = await res.json();
@@ -330,21 +352,19 @@
                 localStorage.setItem('patientEmail', data.email);
                 localStorage.setItem('patientName', data.name);
 
-                const el = document.getElementById("loginSuccess");
-                el.innerText = data.message || "Login successful!";
-                el.style.display = "block";
+                showSuccess("loginSuccess", data.message || "Login successful!");
 
                 setTimeout(() => {
                     window.location.href = "patdash.html";
                 }, 1000);
             } else {
-                showLoginError(data.message || "Login failed.");
+                showError("loginError", data.message || "Login failed.");
                 btn.disabled = false;
                 btn.innerText = "Login";
             }
         } catch (err) {
-            showLoginError("Server error. Please try again.");
             console.error("Login error:", err);
+            showError("loginError", "Server error. Please try again.");
             btn.disabled = false;
             btn.innerText = "Login";
         }

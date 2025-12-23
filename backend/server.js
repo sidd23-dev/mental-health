@@ -9,7 +9,6 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Debug: show env loaded
 console.log('ENV EMAIL_USER =', process.env.EMAIL_USER);
 console.log('ENV EMAIL_PASS =', process.env.EMAIL_PASS ? 'LOADED' : 'MISSING');
 
@@ -17,9 +16,11 @@ console.log('ENV EMAIL_PASS =', process.env.EMAIL_PASS ? 'LOADED' : 'MISSING');
 app.use(cors());
 app.use(bodyParser.json());
 
-// In-memory storage (for learning only)
-const otpStore = {};  // { email: { otp, expiresAt } }
-const usersDB = {};   // { email: { firstName, lastName, password, createdAt } }
+// In-memory storage
+// usersDB[email] = { firstName, lastName, email, password, isVerified, createdAt }
+const usersDB = {};
+// otpStore[email] = { otp, expiresAt }
+const otpStore = {};
 
 // Generate 6-digit OTP
 function generateOTP() {
@@ -30,8 +31,8 @@ function generateOTP() {
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,  // from .env
-        pass: process.env.EMAIL_PASS   // from .env
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     },
     tls: {
         rejectUnauthorized: false
@@ -43,113 +44,129 @@ app.get('/', (req, res) => {
     res.json({ message: 'Backend running' });
 });
 
-// ========== PATIENT ROUTES ==========
+// ========== SIGNUP + OTP FLOW ==========
 
-// SIGNUP
-app.post('/api/patient/signup', (req, res) => {
+// 1) START SIGNUP: save user as unverified + send OTP
+app.post('/api/patient/signup', async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
     if (!firstName || !lastName || !email || !password) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
-    if (usersDB[email]) {
-        return res.status(400).json({ message: 'Email already registered' });
+    // If already verified user exists
+    if (usersDB[email] && usersDB[email].isVerified) {
+        return res.status(400).json({ message: 'Email already registered and verified. Please login.' });
     }
 
+    // Save or overwrite as unverified
     usersDB[email] = {
         firstName,
         lastName,
-        password,
+        email,
+        password,          // plain for demo; use bcrypt in real apps [web:134]
+        isVerified: false,
         createdAt: new Date()
     };
 
-    console.log('New user registered:', email);
-    return res.json({
-        success: true,
-        message: 'Account created successfully!'
-    });
-});
-
-// SEND OTP FOR LOGIN (must match frontend URL)
-app.post('/api/patient/send-otp', async (req, res) => {
-    const { email } = req.body;
-
-    if (!email) {
-        return res.status(400).json({ message: 'Email is required' });
-    }
-
-    if (!usersDB[email]) {
-        return res.status(400).json({ message: 'Email not registered. Please sign up first.' });
-    }
+    // Generate OTP
+    const otp = generateOTP();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    otpStore[email] = { otp, expiresAt };
 
     try {
-        const otp = generateOTP();
-        const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-        otpStore[email] = { otp, expiresAt };
-
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: 'Your Login OTP - Mental Health App',
+            subject: 'Signup OTP - Mental Health App',
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4;">
                     <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px;">
-                        <h2 style="color: #2d5a27;">Mental Health App - Login OTP</h2>
-                        <p>Hello ${usersDB[email].firstName},</p>
-                        <p>Your One-Time Password (OTP) for login is:</p>
+                        <h2 style="color: #2d5a27;">Verify Your Email</h2>
+                        <p>Hello ${firstName},</p>
+                        <p>Your OTP for account verification is:</p>
                         <h1 style="background: #2d5a27; color: white; padding: 15px; text-align: center; border-radius: 8px; letter-spacing: 5px;">
                             ${otp}
                         </h1>
                         <p style="color: #666;">This OTP will expire in 10 minutes.</p>
-                        <p style="color: #666;">If you didn't request this, please ignore this email.</p>
                     </div>
                 </div>
             `
         };
 
-        await transporter.sendMail(mailOptions);  // send email [web:58]
+        await transporter.sendMail(mailOptions); // [web:58][web:125]
 
-        console.log(`OTP sent to ${email}: ${otp}`);
-        return res.json({ success: true, message: 'OTP sent to your email!' });
+        console.log(`Signup OTP sent to ${email}: ${otp}`);
+        return res.json({
+            success: true,
+            message: 'Account created. OTP sent to your email. Please verify.'
+        });
     } catch (error) {
-        console.error('Error sending OTP:', error);
+        console.error('Error sending signup OTP:', error);
         return res.status(500).json({ message: 'Failed to send OTP. Please try again.' });
     }
 });
 
-// LOGIN WITH EMAIL + PASSWORD + OTP
-app.post('/api/patient/login', (req, res) => {
-    const { email, password, otp } = req.body;
+// 2) VERIFY SIGNUP OTP
+app.post('/api/patient/verify-signup-otp', (req, res) => {
+    const { email, otp } = req.body;
 
-    if (!email || !password || !otp) {
-        return res.status(400).json({ message: 'Email, password, and OTP are required' });
+    if (!email || !otp) {
+        return res.status(400).json({ message: 'Email and OTP are required' });
     }
 
-    if (!usersDB[email]) {
-        return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    if (usersDB[email].password !== password) {
-        return res.status(400).json({ message: 'Invalid credentials' });
+    const user = usersDB[email];
+    if (!user) {
+        return res.status(400).json({ message: 'User not found. Please sign up again.' });
     }
 
     const storedOTP = otpStore[email];
     if (!storedOTP) {
-        return res.status(400).json({ message: 'OTP not found. Please request a new one.' });
+        return res.status(400).json({ message: 'No OTP found. Please sign up again.' });
     }
 
     if (Date.now() > storedOTP.expiresAt) {
         delete otpStore[email];
-        return res.status(400).json({ message: 'OTP expired. Please request a new one.' });
+        return res.status(400).json({ message: 'OTP expired. Please sign up again.' });
     }
 
     if (storedOTP.otp !== otp) {
-        return res.status(400).json({ message: 'Invalid OTP' });
+        return res.status(400).json({ message: 'Invalid OTP.' });
     }
 
+    // OTP correct → verify account
+    user.isVerified = true;
     delete otpStore[email];
+
+    console.log('User verified:', email);
+    return res.json({
+        success: true,
+        message: 'Email verified successfully! You can now login.'
+    });
+});
+
+// ========== LOGIN (NO OTP) ==========
+
+// 3) NORMAL LOGIN: email + password only, must be verified
+app.post('/api/patient/login', (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    const user = usersDB[email];
+    if (!user) {
+        return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    if (!user.isVerified) {
+        return res.status(400).json({ message: 'Email not verified. Please complete signup.' });
+    }
+
+    if (user.password !== password) {
+        return res.status(400).json({ message: 'Invalid email or password' });
+    }
 
     const token = Buffer.from(`${email}:${Date.now()}`).toString('base64');
 
@@ -158,7 +175,7 @@ app.post('/api/patient/login', (req, res) => {
         success: true,
         message: 'Login successful!',
         token,
-        name: `${usersDB[email].firstName} ${usersDB[email].lastName}`,
+        name: `${user.firstName} ${user.lastName}`,
         email
     });
 });
