@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Login</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #2d5a27, #1a3c15);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 380px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        h2 {
+            color: #1a3c15;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus {
+            border-color: #2d5a27;
+            outline: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #2d5a27;
+            border: none;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #1a3c15;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .toggle-link {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #2d5a27;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .error {
+            color: red;
+            display: none;
+            margin-bottom: 10px;
+        }
+
+        .success {
+            color: green;
+            display: none;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage">
+        <h2>Patient Login</h2>
+
+        <p class="error" id="loginError"></p>
+        <p class="success" id="loginSuccess"></p>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="Enter your email">
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="Enter password">
+        </div>
+
+        <div class="input-group">
+            <label>OTP</label>
+            <input type="text" id="loginOtp" placeholder="Enter your OTP">
+        </div>
+
+        <button class="btn" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+        <button class="btn" id="loginBtn" onclick="loginUser()">Login</button>
+
+        <p class="toggle-link" onclick="showSignup()">Create an account</p>
+    </div>
+
+    <!-- SIGNUP PAGE -->
+    <div id="signupPage" style="display: none;">
+        <h2>Create Account</h2>
+
+        <p class="error" id="signupError"></p>
+        <p class="success" id="signupSuccess"></p>
+
+        <div class="input-group">
+            <label>First Name</label>
+            <input type="text" id="fname" placeholder="Enter first name">
+        </div>
+
+        <div class="input-group">
+            <label>Last Name</label>
+            <input type="text" id="lname" placeholder="Enter last name">
+        </div>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="signupEmail" placeholder="Enter email">
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="signupPassword" placeholder="Create password">
+        </div>
+
+        <div class="input-group">
+            <label>Confirm Password</label>
+            <input type="password" id="signupConfirmPassword" placeholder="Re-enter password">
+        </div>
+
+        <button class="btn" onclick="signupUser()">Sign Up</button>
+
+        <p class="toggle-link" onclick="showLogin()">Back to Login</p>
+    </div>
+
+</div>
+
+<script>
+    const API_URL = 'http://localhost:5000';
+
+    function showSignup() {
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("signupPage").style.display = "block";
+        clearMessages();
+    }
+
+    function showLogin() {
+        document.getElementById("signupPage").style.display = "none";
+        document.getElementById("loginPage").style.display = "block";
+        clearMessages();
+    }
+
+    function clearMessages() {
+        document.querySelectorAll('.error, .success').forEach(el => {
+            el.style.display = 'none';
+            el.innerText = '';
+        });
+    }
+
+    function showSignupError(msg) {
+        const el = document.getElementById("signupError");
+        el.innerText = msg;
+        el.style.display = "block";
+    }
+
+    function showLoginError(msg) {
+        const el = document.getElementById("loginError");
+        el.innerText = msg;
+        el.style.display = "block";
+    }
+
+    // SIGNUP
+    async function signupUser() {
+        clearMessages();
+
+        const fname = document.getElementById("fname").value.trim();
+        const lname = document.getElementById("lname").value.trim();
+        const email = document.getElementById("signupEmail").value.trim();
+        const pass = document.getElementById("signupPassword").value.trim();
+        const cpass = document.getElementById("signupConfirmPassword").value.trim();
+
+        if (!fname || !lname || !email || !pass || !cpass) {
+            showSignupError("All fields are required!");
+            return;
+        }
+
+        if (pass !== cpass) {
+            showSignupError("Passwords do not match!");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/patient/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    firstName: fname,
+                    lastName: lname,
+                    email: email,
+                    password: pass
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                const el = document.getElementById("signupSuccess");
+                el.innerText = data.message || "Account created successfully! Please login.";
+                el.style.display = "block";
+
+                document.getElementById("fname").value = "";
+                document.getElementById("lname").value = "";
+                document.getElementById("signupEmail").value = "";
+                document.getElementById("signupPassword").value = "";
+                document.getElementById("signupConfirmPassword").value = "";
+
+                setTimeout(showLogin, 1500);
+            } else {
+                showSignupError(data.message || "Signup failed!");
+            }
+        } catch (err) {
+            showSignupError("Server error. Please try again.");
+            console.error("Signup error:", err);
+        }
+    }
+
+    // SEND OTP
+    async function sendOTP() {
+        clearMessages();
+
+        const email = document.getElementById("loginEmail").value.trim();
+
+        if (!email) {
+            showLoginError("Please enter your email to get OTP.");
+            return;
+        }
+
+        const btn = document.getElementById("sendOtpBtn");
+        btn.disabled = true;
+        btn.innerText = "Sending...";
+
+        try {
+            const res = await fetch(`${API_URL}/api/patient/send-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                const el = document.getElementById("loginSuccess");
+                el.innerText = data.message || "OTP sent to your email!";
+                el.style.display = "block";
+            } else {
+                showLoginError(data.message || "Failed to send OTP.");
+            }
+        } catch (err) {
+            showLoginError("Server error while sending OTP.");
+            console.error("OTP error:", err);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Send OTP";
+        }
+    }
+
+    // LOGIN
+    async function loginUser() {
+        clearMessages();
+
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value.trim();
+        const otp = document.getElementById("loginOtp").value.trim();
+
+        if (!email || !password || !otp) {
+            showLoginError("Enter email, password, and OTP.");
+            return;
+        }
+
+        const btn = document.getElementById("loginBtn");
+        btn.disabled = true;
+        btn.innerText = "Logging in...";
+
+        try {
+            const res = await fetch(`${API_URL}/api/patient/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, otp })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem('patientToken', data.token);
+                localStorage.setItem('patientEmail', data.email);
+                localStorage.setItem('patientName', data.name);
+
+                const el = document.getElementById("loginSuccess");
+                el.innerText = data.message || "Login successful!";
+                el.style.display = "block";
+
+                setTimeout(() => {
+                    window.location.href = "patdash.html";
+                }, 1000);
+            } else {
+                showLoginError(data.message || "Login failed.");
+                btn.disabled = false;
+                btn.innerText = "Login";
+            }
+        } catch (err) {
+            showLoginError("Server error. Please try again.");
+            console.error("Login error:", err);
+            btn.disabled = false;
+            btn.innerText = "Login";
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+        .sidebar-logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+        .sidebar-logo h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .sidebar-logo p {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        .sidebar-menu {
+            list-style: none;
+        }
+        .menu-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .menu-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .menu-link.active {
+            background: rgba(255,255,255,0.15);
+            border-left-color: #4CAF50;
+            color: white;
+        }
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 260px;
+            right: 0;
+            height: 70px;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 99;
+        }
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a3c15;
+        }
+        .main {
+            margin-left: 260px;
+            margin-top: 70px;
+            padding: 30px;
+            width: calc(100% - 260px);
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <h2>🩺 Mental Health Supporter</h2>
+            <p>AI-Driven Mental Health System</p>
+        </div>
+
+        <ul class="sidebar-menu">
+
+            <li>
+                <div class="menu-link active" onclick="showPage('dashboard')">
+                    <span class="menu-icon">🏠</span> Dashboard
+                </div>
+            </li>
+
+           
+            <li>
+                <a href="aichat.html" class="menu-link">
+                    <span class="menu-icon">🤖</span> Chat With AI (Releasing mental Issues)
+                </a>
+            </li>
+
+            <li>
+                <div class="menu-link" onclick="showPage('booking')">
+                    <span class="menu-icon">📅</span> Doctor Booking
+                </div>
+            </li>
+
+            <li>
+                <div class="menu-link" onclick="showPage('sessions')">
+                    <span class="menu-icon">📞</span> My Sessions
+                </div>
+            </li>
+
+           
+            <li>
+                <a href="patprofile.html" class="menu-link">
+                    <span class="menu-icon">👤</span> Profile
+                </a>
+            </li>
+
+        </ul>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-title">Patient Dashboard</div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="page active">
+            <h2>Welcome to your Dashboard</h2>
+            <p>Your mental health support system is here.</p>
+        </div>
+
+        <!-- Booking -->
+        <div id="booking" class="page">
+            <h2>Doctor Booking</h2>
+            <p>Book appointments with available doctors.</p>
+        </div>
+
+        <!-- Sessions -->
+        <div id="sessions" class="page">
+            <h2>My Sessions</h2>
+            <p>View your upcoming and past sessions.</p>
+        </div>
+
+    </div>
+
+<script>
+    function showPage(pageId) {
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        document.getElementById(pageId).classList.add("active");
+
+        // Update active menu link for internal pages only
+        document.querySelectorAll(".menu-link").forEach(link => {
+            if (!link.hasAttribute('href')) {
+                link.classList.remove("active");
+            }
+        });
+        if (event.target && !event.target.hasAttribute('href')) {
+            event.target.classList.add("active");
+        }
+    }
+</script>
+
+</body>
+</html>

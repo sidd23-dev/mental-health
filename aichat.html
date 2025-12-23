@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mental Health Assistant</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2d5a27, #1a3c15);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 95%;
+            max-width: 500px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #1a3c15;
+            color: white;
+            padding: 18px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f6fff6;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            line-height: 1.4;
+            font-size: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .user {
+            background: #d2ffd2;
+            margin-left: auto;
+            border-bottom-right-radius: 3px;
+        }
+
+        .ai {
+            background: #e8f5e8;
+            border-bottom-left-radius: 3px;
+            border: 1px solid #2d5a27;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(10px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        .input-area {
+            display: flex;
+            padding: 15px;
+            background: #eef9ee;
+            border-top: 2px solid #2d5a27;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #2d5a27;
+            border-radius: 12px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .input-area button {
+            background: linear-gradient(135deg, #2d5a27, #1a3c15);
+            color: white;
+            margin-left: 10px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .input-area button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+
+        <div class="chat-header">
+            AI Mental Health Assistant
+        </div>
+
+        <div class="chat-box" id="chat-box">
+            <div class="message ai">
+                👋 Hello! I'm here to listen.  
+                You can tell me what you're feeling right now.
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type your feelings here...">
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
+
+    </div>
+
+   <script>
+
+        // ADD USER & AI MESSAGE
+        function addMessage(text, type) {
+            let chatBox = document.getElementById("chat-box");
+            let msg = document.createElement("div");
+            msg.classList.add("message", type);
+            msg.innerText = text;
+            chatBox.appendChild(msg);
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // SIMPLE AI LOGIC
+        function getAIReply(userText) {
+            userText = userText.toLowerCase();
+
+            if (userText.includes("stress") || userText.includes("tired")) {
+                return "I'm sorry you're feeling stressed. Try deep breathing for 1 minute — it can calm your mind.";
+            } 
+            if (userText.includes("sad") || userText.includes("depressed")) {
+                return "It's okay to feel sad sometimes. You are not alone. Would you like some mood-lifting exercises?";
+            }
+            if (userText.includes("anxiety") || userText.includes("fear")) {
+                return "Anxiety can be overwhelming. Try grounding: Look around and name 5 things you can see.";
+            }
+
+            return "I understand. Please tell me more about what you're feeling.";
+        }
+
+        // SEND MESSAGE FUNCTION (FOR BUTTON + ENTER)
+        function sendMessage() {
+            let input = document.getElementById("userInput");
+            let text = input.value.trim();
+
+            if (text === "") return;
+
+            // USER MESSAGE
+            addMessage(text, "user");
+
+            // AI MESSAGE
+            setTimeout(() => {
+                let aiReply = getAIReply(text);
+                addMessage(aiReply, "ai");
+            }, 500);
+
+            input.value = "";
+        }
+
+        // ENTER KEY TO SEND
+        const inputBox = document.getElementById("userInput");
+        const sendBtn = document.getElementById("sendBtn");
+
+        inputBox.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+    </script>
+
+</body>
+</html>

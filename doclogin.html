@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Doctor Login</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg,#2d5a27,#1a3c15);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.container{
+    width:380px;
+    background:#fff;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+h2{
+    text-align:center;
+    color:#1a3c15;
+}
+
+input, select{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border:2px solid #ccc;
+    border-radius:6px;
+}
+
+input:focus{
+    border-color:#2d5a27;
+    outline:none;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#2d5a27;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+button:hover{
+    background:#1a3c15;
+}
+
+.link{
+    text-align:center;
+    margin-top:10px;
+    cursor:pointer;
+    color:#2d5a27;
+    font-weight:bold;
+}
+
+.hidden{
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="loginBox">
+    <h2>Doctor Login</h2>
+
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Password">
+
+    <button onclick="sendLoginOTP()">Send OTP</button>
+
+    <div class="link" onclick="showRegister()">Create Account</div>
+</div>
+
+<!-- LOGIN OTP -->
+<div id="loginOtpBox" class="hidden">
+    <h2>OTP Verification</h2>
+    <input type="text" id="loginOtpInput" placeholder="Enter OTP">
+    <button onclick="verifyLoginOTP()">Verify & Login</button>
+</div>
+
+<!-- REGISTER -->
+<div id="registerBox" class="hidden">
+    <h2>Create Doctor Account</h2>
+
+    <input type="text" placeholder="First Name">
+    <input type="text" placeholder="Last Name">
+    <input type="email" id="regEmail" placeholder="Email">
+    <input type="password" id="regPassword" placeholder="Password">
+    <input type="number" placeholder="Age">
+
+    <select>
+        <option value="">Specialization</option>
+        <option>Psychiatrist</option>
+        <option>Psychologist</option>
+        <option>Counsellor</option>
+        <option>Therapist</option>
+    </select>
+
+    <input type="number" placeholder="Years of Experience">
+    <input type="text" placeholder="Clinic / Hospital Name">
+    <input type="text" placeholder="Medical Registration ID">
+
+    <button onclick="registerDoctor()">Register</button>
+    <div class="link" onclick="showLogin()">Back to Login</div>
+</div>
+
+</div>
+
+<script>
+let savedEmail = "";
+let savedPassword = "";
+let loginOTP = "";
+
+function showRegister(){
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("registerBox").classList.remove("hidden");
+}
+
+function showLogin(){
+    document.getElementById("registerBox").classList.add("hidden");
+    document.getElementById("loginOtpBox").classList.add("hidden");
+    document.getElementById("loginBox").classList.remove("hidden");
+}
+
+// REGISTER

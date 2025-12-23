@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Profile</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+body{
+    font-family:Segoe UI, sans-serif;
+    background:linear-gradient(135deg,#2d5a27,#1a3c15);
+    min-height:100vh;
+    padding:30px;
+}
+.container{
+    max-width:800px;
+    margin:auto;
+    background:#fff;
+    padding:40px;
+    border-radius:20px;
+}
+.header{
+    text-align:center;
+    margin-bottom:20px;
+}
+.success-message{
+    display:none;
+    background:#d4edda;
+    color:#155724;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    text-align:center;
+}
+.success-message.show{
+    display:block;
+}
+.form-group{
+    margin-bottom:15px;
+}
+label{
+    font-weight:600;
+    margin-bottom:5px;
+    display:block;
+}
+input,select,textarea{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:2px solid #ccc;
+}
+textarea{
+    min-height:80px;
+}
+.form-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+.section-title{
+    margin:20px 0 10px;
+    font-size:18px;
+    font-weight:700;
+}
+.button-section{
+    display:flex;
+    gap:15px;
+    margin-top:25px;
+}
+button{
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+}
+.save-btn{
+    background:#2d5a27;
+    color:white;
+}
+.cancel-btn{
+    background:#ccc;
+}
+.edit-btn{
+    background:white;
+    border:2px solid #2d5a27;
+    color:#2d5a27;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<h2>👨‍⚕️ Doctor Profile</h2>
+<p>Edit and save your professional details</p>
+</div>
+
+<div class="success-message" id="successMessage">
+✔ Profile saved successfully
+</div>
+
+<!-- BASIC INFO -->
+<div class="section-title">Basic Information</div>
+
+<div class="form-group">
+<label>Full Name</label>
+<input type="text" id="fullName">
+</div>
+
+<div class="form-row">
+<div class="form-group">
+<label>Email</label>
+<input type="email" id="email">
+</div>
+<div class="form-group">
+<label>Phone</label>
+<input type="tel" id="phone">
+</div>
+</div>
+
+<div class="form-row">
+<div class="form-group">
+<label>Date of Birth</label>
+<input type="date" id="dob">
+</div>
+<div class="form-group">
+<label>Gender</label>
+<select id="gender">
+<option value="">Select</option>
+<option>Male</option>
+<option>Female</option>
+<option>Other</option>
+</select>
+</div>
+</div>
+
+<!-- PROFESSIONAL -->
+<div class="section-title">Professional Details</div>
+
+<div class="form-group">
+<label>License Number</label>
+<input type="text" id="license">
+</div>
+
+<div class="form-row">
+<div class="form-group">
+<label>Specialization</label>
+<select id="specialization">
+<option value="">Select</option>
+<option>Psychiatrist</option>
+<option>Psychologist</option>
+<option>Counselor</option>
+</select>
+</div>
+<div class="form-group">
+<label>Experience (Years)</label>
+<input type="number" id="experience">
+</div>
+</div>
+
+<div class="form-group">
+<label>Qualification</label>
+<input type="text" id="qualification">
+</div>
+
+<!-- HOSPITAL -->
+<div class="section-title">Hospital Details</div>
+
+<div class="form-group">
+<label>Hospital Name</label>
+<input type="text" id="hospital">
+</div>
+
+<div class="form-group">
+<label>Hospital Address</label>
+<textarea id="address"></textarea>
+</div>
+
+<!-- BUTTONS -->
+<div class="button-section">
+<button class="save-btn" onclick="saveProfile()">Save Profile</button>
+<button class="cancel-btn" onclick="cancelProfile()">Cancel</button>
+<button class="edit-btn" onclick="editProfile()">Edit Profile</button>
+</div>
+
+</div>
+
+<script>
+const fields = document.querySelectorAll("input,select,textarea");
+
+function disableFields(){
+    fields.forEach(f => f.disabled = true);
+}
+
+function editProfile(){
+    fields.forEach(f => f.disabled = false);
+}
+
+function saveProfile(){
+    let data = {};
+    fields.forEach(f => {
+        data[f.id] = f.value;
+        f.disabled = true;
+    });
+    localStorage.setItem("doctorProfile", JSON.stringify(data));
+    document.getElementById("successMessage").classList.add("show");
+}
+
+function cancelProfile(){
+    let data = JSON.parse(localStorage.getItem("doctorProfile"));
+    if(data){
+        fields.forEach(f => f.value = data[f.id] || "");
+    }
+    disableFields();
+}
+
+window.onload = () => {
+    let data = JSON.parse(localStorage.getItem("doctorProfile"));
+    if(data){
+        fields.forEach(f => f.value = data[f.id] || "");
+    }
+    disableFields();
+};
+</script>
+
+</body>
+</html>
