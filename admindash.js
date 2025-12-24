@@ -36,8 +36,12 @@ async function loadPendingDoctors() {
         <td>Dr. ${doc.firstName} ${doc.lastName}</td>
         <td>${doc.specialization}</td>
         <td>${doc.email}</td>
+        <td>${doc.experienceYears} yrs</td>
+        <td>${doc.clinicName}</td>
+        <td>${doc.registrationId}</td>
         <td>
           <button class="btn btn-success" onclick="approveDoctor('${doc.email}')">Approve</button>
+          <button class="btn btn-danger" onclick="rejectDoctor('${doc.email}')">Reject</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -69,8 +73,36 @@ async function approveDoctor(email) {
   }
 }
 
+async function rejectDoctor(email) {
+  const confirmDelete = confirm(`Reject and remove doctor ${email}?`);
+  if (!confirmDelete) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/doctors/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      loadPendingDoctors();
+      loadOverview();
+      loadApprovedDoctors();
+      alert('Doctor rejected and removed');
+    } else {
+      alert(data.message || 'Error rejecting doctor');
+    }
+  } catch (err) {
+    console.error('reject error', err);
+  }
+}
+
+// expose for inline onclick
+window.rejectDoctor = rejectDoctor;
+
+
 document.getElementById('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem('adminToken');
   localStorage.removeItem('adminEmail');
-  window.location.href = 'adminlogin.html';
+  window.location.href = 'admlogin.html';
 });

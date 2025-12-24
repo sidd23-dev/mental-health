@@ -230,6 +230,25 @@ app.post('/api/admin/doctors/approve', (req, res) => {
 
 //===========admin login section========
 // ... existing requires, app = express(), middleware, patient/doctor routes ...
+// Reject (delete) a doctor by email
+app.post('/api/admin/doctors/reject', (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const doctor = doctorsDB[email];
+    if (!doctor) {
+        return res.status(400).json({ message: 'Doctor not found' });
+    }
+
+    delete doctorsDB[email];
+    console.log('Doctor rejected and removed by admin:', email);
+
+    return res.json({ success: true, message: 'Doctor rejected and removed.' });
+});
+
 
 // SIMPLE ADMIN ACCOUNT (in memory)
 const adminUser = {
