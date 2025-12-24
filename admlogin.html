@@ -2,350 +2,174 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>Admin Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - AI Mental Health</title>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg,#2d5a27,#1a3c15);
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .card{
+            width:360px;
+            background:#ffffff;
+            padding:28px 26px;
+            border-radius:14px;
+            box-shadow:0 10px 26px rgba(0,0,0,0.35);
         }
-
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 45px;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 450px;
-            backdrop-filter: blur(10px);
+        .title{
+            text-align:center;
+            margin-bottom:4px;
+            font-size:22px;
+            font-weight:700;
+            color:#1a3c15;
         }
-
-        .admin-header {
-            text-align: center;
-            margin-bottom: 30px;
+        .subtitle{
+            text-align:center;
+            font-size:12px;
+            color:#666;
+            margin-bottom:18px;
+            letter-spacing:0.5px;
+            text-transform:uppercase;
         }
-
-        .admin-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
+        .input-group{
+            margin-bottom:14px;
         }
-
-        .admin-header h1 {
-            color: #1a3c15;
-            font-size: 28px;
-            margin-bottom: 10px;
-            font-weight: 700;
+        label{
+            display:block;
+            font-size:13px;
+            font-weight:600;
+            margin-bottom:6px;
+            color:#1a3c15;
         }
-
-        .admin-header p {
-            color: #2d5a27;
-            font-size: 15px;
-            line-height: 1.5;
-            font-weight: 500;
+        input{
+            width:100%;
+            padding:9px 10px;
+            border:2px solid #dde2e6;
+            border-radius:7px;
+            font-size:14px;
+            transition:border-color .2s, box-shadow .2s;
         }
-
-        .form-group {
-            margin-bottom: 20px;
+        input:focus{
+            outline:none;
+            border-color:#2d5a27;
+            box-shadow:0 0 0 2px rgba(45,90,39,0.18);
         }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #1a3c15;
-            font-weight: 600;
-            font-size: 14px;
+        .btn{
+            width:100%;
+            padding:11px;
+            border:none;
+            border-radius:8px;
+            background:#2d5a27;
+            color:#fff;
+            font-size:15px;
+            font-weight:600;
+            cursor:pointer;
+            margin-top:6px;
+            transition:background .2s, transform .1s, box-shadow .2s;
         }
-
-        input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.3s ease;
+        .btn:hover{
+            background:#1a3c15;
+            transform:translateY(-1px);
+            box-shadow:0 8px 18px rgba(0,0,0,0.3);
         }
-
-        input:focus {
-            outline: none;
-            border-color: #2d5a27;
-            box-shadow: 0 0 0 4px rgba(45, 90, 39, 0.15);
+        .error{
+            margin-top:6px;
+            color:#c62828;
+            font-size:12px;
+            display:none;
         }
-
-        .info-section {
-            background: #e8f5e8;
-            border-left: 4px solid #2d5a27;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #1a3c15;
-            line-height: 1.6;
+        .row{
+            display:flex;
+            gap:10px;
         }
-
-        .info-section h4 {
-            color: #2d5a27;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .info-section ul {
-            margin-left: 20px;
-        }
-
-        .info-section li {
-            margin-bottom: 5px;
-        }
-
-        .small-text {
-            font-size: 12px;
-            color: #555;
-            margin-top: 6px;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 25px rgba(45, 90, 39, 0.4);
-        }
-
-        .otp-section {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            border: 2px dashed #2d5a27;
-            border-radius: 12px;
-            background: #f8fff8;
-            margin-top: 20px;
-        }
-
-        .otp-section.active {
-            display: block;
-        }
-
-        .otp-section h3 {
-            color: #1a3c15;
-            margin-bottom: 10px;
-        }
-
-        .otp-inputs {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-
-        .otp-input {
-            width: 50px;
-            height: 50px !important;
-            padding: 0 !important;
-            font-size: 24px;
-            text-align: center;
-            border: 2px solid #2d5a27 !important;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-
-        .otp-btn, .resend-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .otp-btn:hover, .resend-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(45, 90, 39, 0.3);
-        }
-
-        .back-link {
-            margin-top: 20px;
-            text-align: center;
-            color: #2d5a27;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        .admin-badge {
-            display: inline-block;
-            background: #2d5a27;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 10px;
-            text-transform: uppercase;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                margin: 20px;
-                padding: 30px 20px;
-            }
-
-            .otp-inputs {
-                gap: 5px;
-            }
-
-            .otp-input {
-                width: 45px;
-                height: 45px !important;
-            }
+        .row .input-group{
+            flex:1;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="admin-header">
-            <div class="admin-icon">🛡️</div>
-            <h1>Admin Portal</h1>
-            <p>AI-Driven Mental Health Assessment & Stress Detection System</p>
-            <div class="admin-badge">Admin Access Only</div>
+
+<div class="card">
+    <h1 class="title">Admin Login</h1>
+    <p class="subtitle">System Control Access</p>
+
+    <p id="adminError" class="error"></p>
+
+    <div class="row">
+        <div class="input-group">
+            <label for="adminId">Admin ID</label>
+            <input type="text" id="adminId" placeholder="ADM-001">
         </div>
-
-        <!-- Info Box - Where to Get Admin ID -->
-        <div class="info-section">
-            <h4>📋 Where to Get Your Admin ID?</h4>
-            <ul>
-                <li><strong>Super Admin</strong> created your account</li>
-                <li>Check your <strong>email</strong> for invitation</li>
-                <li>Format: de>ADM-2025-001</code></li>
-                <li>If you didn't receive it, contact Super Admin</li>
-            </ul>
-        </div>
-
-        <!-- Login Form -->
-        <div id="admin-login-form">
-            <div class="form-group">
-                <label>Admin ID *</label>
-                <input type="text" id="admin-id" placeholder="e.g. ADM-2025-001" required>
-                <div class="small-text">Provided by Super Admin during account creation</div>
-            </div>
-
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="admin-email" placeholder="admin@mentalhealth.com" required>
-                <div class="small-text">Your registered admin email</div>
-            </div>
-
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="admin-password" placeholder="Enter your password" required>
-                <div class="small-text">Your secure admin password</div>
-            </div>
-
-            <button class="submit-btn" onclick="handleAdminLogin()">Login to Admin Panel</button>
-
-            <div class="info-section" style="margin-top: 20px;">
-                <h4>🔒 Security Features</h4>
-                <ul>
-                    <li>Two-Factor Authentication (2FA)</li>
-                    <li>All admin actions are logged</li>
-                    <li>IP address tracking enabled</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- 2FA OTP Section -->
-        <div id="admin-otp-section" class="otp-section">
-            <h3>🔐 Two-Factor Authentication</h3>
-            <p>Enter the 6-digit code sent to <strong id="admin-otp-email"></strong></p>
-            <div class="otp-inputs">
-                <input type="text" class="otp-input" maxlength="1" autocomplete="one-time-code">
-                <input type="text" class="otp-input" maxlength="1" autocomplete="one-time-code">
-                <input type="text" class="otp-input" maxlength="1" autocomplete="one-time-code">
-                <input type="text" class="otp-input" maxlength="1" autocomplete="one-time-code">
-                <input type="text" class="otp-input" maxlength="1" autocomplete="one-time-code">
-                <input type="text" class="otp-input" maxlength="1" autocomplete="one-time-code">
-            </div>
-            <button class="otp-btn" onclick="verifyAdminOTP()">Verify & Login</button>
-            <button class="resend-btn" onclick="resendAdminOTP()">Resend Code</button>
-        </div>
-
-        <div class="back-link" onclick="goBack()">
-            ← Back to Role Selection
+        <div class="input-group">
+            <label for="adminEmail">Email</label>
+            <input type="email" id="adminEmail" placeholder="admin@example.com">
         </div>
     </div>
 
-    <script>
-        let adminOTP = '';
-        let adminEmail = '';
+    <div class="input-group">
+        <label for="adminPassword">Password</label>
+        <input type="password" id="adminPassword" placeholder="••••••••">
+    </div>
 
-        function handleAdminLogin() {
-            const adminId = document.getElementById('admin-id').value.trim();
-            const email = document.getElementById('admin-email').value.trim();
-            const password = document.getElementById('admin-password').value.trim();
+    <button class="btn" id="loginBtn" onclick="adminLogin()">Login</button>
+</div>
 
-            if (!adminId || !email || !password) {
-                alert('Please fill all fields');
-                return;
-            }
+<script>
+    const API_URL = 'http://localhost:5000';
 
-            // Validate Admin ID format
-            if (!/^ADM-\d{4}-\d{3}$/.test(adminId)) {
-                alert('Invalid Admin ID format.\nCorrect format: ADM-2025-001\n\nIf you don\'t have an Admin ID, contact the Super Admin.');
-                return;
-            }
+    function showError(msg){
+        const el = document.getElementById('adminError');
+        el.innerText = msg;
+        el.style.display = 'block';
+    }
 
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                alert('Please enter a valid email address');
-                return;
-            }
+    async function adminLogin(){
+        document.getElementById('adminError').style.display = 'none';
 
-            adminEmail = email;
+        const adminId = document.getElementById('adminId').value.trim();
+        const email   = document.getElementById('adminEmail').value.trim();
+        const password= document.getElementById('adminPassword').value.trim();
 
-            // Generate mock OTP for demo
-            adminOTP = Math.floor(100000 + Math.random() * 900000).toString();
-            console.log('🔑 Admin OTP (for demo):', adminOTP);
-
-            // Show 2FA section
-            document.getElementById('admin-login-form').style.display = 'none';
-            document.getElementById('admin-otp-section').classList.add('active');
-            document.getElementById('admin-otp-email').textContent = email;
-
-            setTimeout(() => {
-                alert(
-                    '✅ Admin credentials verified!\n\n' +
-                    'A 6-digit verification code has been sent to:\n' +
-                    email + '\n\n' +
-                    '💡 For testing, check browser console (F12) for OTP'
-                );
-            }, 500);
+        if(!adminId || !email || !password){
+            showError('Admin ID, email and password are required.');
+            return;
         }
 
-        function verifyAdminOTP() {
-            const otpInput
+        const btn = document.getElementById('loginBtn');
+        btn.disabled = true;
+        btn.innerText = 'Checking...';
+
+        try{
+            const res = await fetch(`${API_URL}/api/admin/login`,{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({ adminId, email, password })
+            });
+            const data = await res.json();
+
+            if(res.ok && data.success){
+                localStorage.setItem('adminEmail', data.email || email);
+                localStorage.setItem('adminToken', data.token || '');
+                window.location.href = 'admindashboard.html';
+            }else{
+                showError(data.message || 'Invalid admin credentials.');
+                btn.disabled = false;
+                btn.innerText = 'Login';
+            }
+        }catch(err){
+            console.error('Admin login error:', err);
+            showError('Server error. Try again.');
+            btn.disabled = false;
+            btn.innerText = 'Login';
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -14,7 +14,6 @@ body{
     justify-content:center;
     align-items:center;
 }
-
 .container{
     width:380px;
     background:#fff;
@@ -22,12 +21,10 @@ body{
     border-radius:12px;
     box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
-
 h2{
     text-align:center;
     color:#1a3c15;
 }
-
 input, select{
     width:100%;
     padding:10px;
@@ -35,12 +32,10 @@ input, select{
     border:2px solid #ccc;
     border-radius:6px;
 }
-
-input:focus{
+input:focus, select:focus{
     border-color:#2d5a27;
     outline:none;
 }
-
 button{
     width:100%;
     padding:12px;
@@ -52,11 +47,9 @@ button{
     cursor:pointer;
     margin-top:10px;
 }
-
 button:hover{
     background:#1a3c15;
 }
-
 .link{
     text-align:center;
     margin-top:10px;
@@ -64,9 +57,18 @@ button:hover{
     color:#2d5a27;
     font-weight:bold;
 }
-
 .hidden{
     display:none;
+}
+.error{
+    color:red;
+    margin:5px 0;
+    text-align:center;
+}
+.success{
+    color:green;
+    margin:5px 0;
+    text-align:center;
 }
 </style>
 </head>
@@ -75,67 +77,251 @@ button:hover{
 
 <div class="container">
 
-<!-- LOGIN -->
-<div id="loginBox">
-    <h2>Doctor Login</h2>
+    <!-- LOGIN -->
+    <div id="loginBox">
+        <h2>Doctor Login</h2>
+        <p id="loginError" class="error hidden"></p>
+        <p id="loginSuccess" class="success hidden"></p>
 
-    <input type="email" id="loginEmail" placeholder="Email">
-    <input type="password" id="loginPassword" placeholder="Password">
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPassword" placeholder="Password">
 
-    <button onclick="sendLoginOTP()">Send OTP</button>
+        <button id="loginBtn" onclick="loginDoctor()">Login</button>
 
-    <div class="link" onclick="showRegister()">Create Account</div>
-</div>
+        <div class="link" onclick="showRegister()">Create Account</div>
+    </div>
 
-<!-- LOGIN OTP -->
-<div id="loginOtpBox" class="hidden">
-    <h2>OTP Verification</h2>
-    <input type="text" id="loginOtpInput" placeholder="Enter OTP">
-    <button onclick="verifyLoginOTP()">Verify & Login</button>
-</div>
+    <!-- REGISTER -->
+    <div id="registerBox" class="hidden">
+        <h2>Create Doctor Account</h2>
+        <p id="regError" class="error hidden"></p>
+        <p id="regSuccess" class="success hidden"></p>
 
-<!-- REGISTER -->
-<div id="registerBox" class="hidden">
-    <h2>Create Doctor Account</h2>
+        <input type="text" id="regFirstName" placeholder="First Name">
+        <input type="text" id="regLastName" placeholder="Last Name">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPassword" placeholder="Password">
+        <input type="number" id="regAge" placeholder="Age">
 
-    <input type="text" placeholder="First Name">
-    <input type="text" placeholder="Last Name">
-    <input type="email" id="regEmail" placeholder="Email">
-    <input type="password" id="regPassword" placeholder="Password">
-    <input type="number" placeholder="Age">
+        <select id="regSpecialization">
+            <option value="">Specialization</option>
+            <option>Psychiatrist</option>
+            <option>Psychologist</option>
+            <option>Counsellor</option>
+            <option>Therapist</option>
+        </select>
 
-    <select>
-        <option value="">Specialization</option>
-        <option>Psychiatrist</option>
-        <option>Psychologist</option>
-        <option>Counsellor</option>
-        <option>Therapist</option>
-    </select>
+        <input type="number" id="regExp" placeholder="Years of Experience">
+        <input type="text" id="regClinic" placeholder="Clinic / Hospital Name">
+        <input type="text" id="regRegId" placeholder="Medical Registration ID">
 
-    <input type="number" placeholder="Years of Experience">
-    <input type="text" placeholder="Clinic / Hospital Name">
-    <input type="text" placeholder="Medical Registration ID">
+        <button onclick="registerDoctor()">Sign Up & Send OTP</button>
+        <div class="link" onclick="showLogin()">Back to Login</div>
+    </div>
 
-    <button onclick="registerDoctor()">Register</button>
-    <div class="link" onclick="showLogin()">Back to Login</div>
-</div>
+    <!-- LOGIN OTP FOR SIGNUP VERIFICATION -->
+    <div id="otpBox" class="hidden">
+        <h2>Verify Doctor Email</h2>
+        <p id="otpError" class="error hidden"></p>
+        <p id="otpSuccess" class="success hidden"></p>
+
+        <p style="font-size:14px;">
+            OTP sent to <span id="otpEmailText" style="font-weight:bold;"></span>.
+        </p>
+
+        <input type="text" id="otpInput" placeholder="Enter OTP">
+
+        <button onclick="verifyDoctorOTP()">Verify OTP</button>
+        <div class="link" onclick="showLogin()">Back to Login</div>
+    </div>
 
 </div>
 
 <script>
-let savedEmail = "";
-let savedPassword = "";
-let loginOTP = "";
+const API_URL = 'http://localhost:5000';
 
+let currentDoctorEmail = "";
+
+// Helpers
+function show(elemId) {
+    document.getElementById(elemId).classList.remove("hidden");
+}
+function hide(elemId) {
+    document.getElementById(elemId).classList.add("hidden");
+}
+function setText(id, msg, isError=true) {
+    const el = document.getElementById(id);
+    el.innerText = msg;
+    el.classList.remove("hidden");
+}
+function clearMessages() {
+    ["loginError","loginSuccess","regError","regSuccess","otpError","otpSuccess"].forEach(id => {
+        const el = document.getElementById(id);
+        el.innerText = "";
+        el.classList.add("hidden");
+    });
+}
+
+// Switch views
 function showRegister(){
-    document.getElementById("loginBox").classList.add("hidden");
-    document.getElementById("registerBox").classList.remove("hidden");
+    clearMessages();
+    hide("loginBox");
+    hide("otpBox");
+    show("registerBox");
 }
-
 function showLogin(){
-    document.getElementById("registerBox").classList.add("hidden");
-    document.getElementById("loginOtpBox").classList.add("hidden");
-    document.getElementById("loginBox").classList.remove("hidden");
+    clearMessages();
+    hide("registerBox");
+    hide("otpBox");
+    show("loginBox");
 }
 
-// REGISTER
+// REGISTER DOCTOR (signup + send OTP)
+async function registerDoctor() {
+    clearMessages();
+
+    const firstName = document.getElementById("regFirstName").value.trim();
+    const lastName = document.getElementById("regLastName").value.trim();
+    const email = document.getElementById("regEmail").value.trim();
+    const password = document.getElementById("regPassword").value.trim();
+    const age = document.getElementById("regAge").value.trim();
+    const specialization = document.getElementById("regSpecialization").value;
+    const experienceYears = document.getElementById("regExp").value.trim();
+    const clinicName = document.getElementById("regClinic").value.trim();
+    const registrationId = document.getElementById("regRegId").value.trim();
+
+    if (!firstName || !lastName || !email || !password || !age || !specialization || !experienceYears || !clinicName || !registrationId) {
+        setText("regError", "All fields are required.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/api/doctor/signup`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                firstName,
+                lastName,
+                email,
+                password,
+                age,
+                specialization,
+                experienceYears,
+                clinicName,
+                registrationId
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            // Save email for OTP verification
+            currentDoctorEmail = email;
+            document.getElementById("otpEmailText").innerText = email;
+
+            // Clear form
+            document.getElementById("regFirstName").value = "";
+            document.getElementById("regLastName").value = "";
+            document.getElementById("regEmail").value = "";
+            document.getElementById("regPassword").value = "";
+            document.getElementById("regAge").value = "";
+            document.getElementById("regSpecialization").value = "";
+            document.getElementById("regExp").value = "";
+            document.getElementById("regClinic").value = "";
+            document.getElementById("regRegId").value = "";
+
+            // Go to OTP box
+            hide("registerBox");
+            show("otpBox");
+        } else {
+            setText("regError", data.message || "Signup failed.");
+        }
+
+    } catch (err) {
+        console.error("Doctor signup error:", err);
+        setText("regError", "Server error. Please try again.");
+    }
+}
+
+// VERIFY DOCTOR OTP
+async function verifyDoctorOTP() {
+    clearMessages();
+
+    const otp = document.getElementById("otpInput").value.trim();
+    const email = currentDoctorEmail;
+
+    if (!email || !otp) {
+        setText("otpError", "Missing email or OTP.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/api/doctor/verify-signup-otp`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ email, otp })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            setText("otpSuccess", data.message || "Verified! Wait for admin approval.");
+            setTimeout(showLogin, 1500);
+        } else {
+            setText("otpError", data.message || "OTP verification failed.");
+        }
+
+    } catch (err) {
+        console.error("Doctor OTP verify error:", err);
+        setText("otpError", "Server error. Please try again.");
+    }
+}
+
+// LOGIN DOCTOR (email + password only)
+async function loginDoctor() {
+    clearMessages();
+
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+
+    if (!email || !password) {
+        setText("loginError", "Enter email and password.");
+        return;
+    }
+
+    const btn = document.getElementById("loginBtn");
+    btn.disabled = true;
+    btn.innerText = "Logging in...";
+
+    try {
+        const res = await fetch(`${API_URL}/api/doctor/login`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            localStorage.setItem('doctorToken', data.token);
+            localStorage.setItem('doctorEmail', data.email);
+            localStorage.setItem('doctorName', data.name);
+
+            setText("loginSuccess", data.message || "Login successful.");
+            setTimeout(() => {
+                window.location.href = "docpage.html";   // doctor dashboard
+            }, 1000);
+        } else {
+            setText("loginError", data.message || "Login failed.");
+            btn.disabled = false;
+            btn.innerText = "Login";
+        }
+    } catch (err) {
+        console.error("Doctor login error:", err);
+        setText("loginError", "Server error. Please try again.");
+        btn.disabled = false;
+        btn.innerText = "Login";
+    }
+}
+</script>
+
+</body>
+</html>

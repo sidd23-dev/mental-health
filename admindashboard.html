@@ -1,540 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - AI Mental Health</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            display: flex;
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 280px;
-            height: 100vh;
-            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
-            color: white;
-            padding: 25px 0;
-            overflow-y: auto;
-            position: fixed;
-            left: 0;
-            top: 0;
-        }
-
-        .logo {
-            padding: 0 25px 30px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 25px;
-        }
-
-        .logo h2 {
-            font-size: 20px;
-            margin-bottom: 5px;
-        }
-
-        .logo p {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .nav-menu {
-            list-style: none;
-        }
-
-        .nav-item {
-            margin: 0;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 15px 25px;
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-            font-size: 15px;
-        }
-
-        .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .nav-link.active {
-            background: rgba(255,255,255,0.15);
-            border-left-color: #4CAF50;
-            color: white;
-        }
-
-        .nav-icon {
-            margin-right: 15px;
-            font-size: 18px;
-            width: 25px;
-            text-align: center;
-        }
-
-        /* HEADER */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 280px;
-            right: 0;
-            height: 70px;
-            background: white;
-            border-bottom: 1px solid #e1e5e9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 30px;
-            z-index: 99;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .header-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1a3c15;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .notification-bell {
-            font-size: 22px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -8px;
-            background: #e74c3c;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-        }
-
-        .admin-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .admin-name {
-            color: #333;
-            font-weight: 500;
-        }
-
-        /* MAIN CONTENT */
-        .main-content {
-            margin-left: 280px;
-            margin-top: 70px;
-            padding: 30px;
-            width: calc(100% - 280px);
-            min-height: calc(100vh - 70px);
-        }
-
-        .dashboard-section {
-            display: none;
-        }
-
-        .dashboard-section.active {
-            display: block;
-        }
-
-        /* STATS GRID */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            border-left: 4px solid #2d5a27;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        }
-
-        .stat-icon {
-            font-size: 35px;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            color: #666;
-            font-size: 13px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1a3c15;
-            margin-bottom: 8px;
-        }
-
-        .stat-change {
-            font-size: 13px;
-            color: #27ae60;
-        }
-
-        /* TABLE */
-        .table-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-
-        .table-header {
-            padding: 20px 25px;
-            border-bottom: 2px solid #e1e5e9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .table-header h3 {
-            color: #1a3c15;
-            font-size: 18px;
-        }
-
-        .action-btn {
-            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(45, 90, 39, 0.3);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background: #f8f9fa;
-            padding: 15px 25px;
-            text-align: left;
-            color: #555;
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            border-bottom: 1px solid #e1e5e9;
-        }
-
-        td {
-            padding: 18px 25px;
-            border-bottom: 1px solid #f0f0f0;
-            color: #333;
-            font-size: 14px;
-        }
-
-        tr:hover {
-            background: #f8f9fa;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-approved {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-rejected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-small {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            color: white;
-        }
-
-        .btn-approve {
-            background: #27ae60;
-        }
-
-        .btn-approve:hover {
-            background: #229954;
-        }
-
-        .btn-reject {
-            background: #e74c3c;
-        }
-
-        .btn-reject:hover {
-            background: #c0392b;
-        }
-
-        .btn-view {
-            background: #3498db;
-        }
-
-        .btn-view:hover {
-            background: #2980b9;
-        }
-
-        /* MODAL */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 200;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #e1e5e9;
-            padding-bottom: 15px;
-        }
-
-        .modal-header h2 {
-            color: #1a3c15;
-            font-size: 22px;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: #666;
-        }
-
-        .modal-field {
-            margin-bottom: 18px;
-        }
-
-        .modal-field label {
-            display: block;
-            margin-bottom: 8px;
-            color: #1a3c15;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .modal-field input, .modal-field textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-
-        .modal-field input:focus, .modal-field textarea:focus {
-            outline: none;
-            border-color: #2d5a27;
-            box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.1);
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 25px;
-        }
-
-        .modal-actions button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-cancel {
-            background: #e1e5e9;
-            color: #333;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
-            color: white;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(45, 90, 39, 0.3);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .empty-state-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 200px;
-            }
-
-            .header {
-                left: 200px;
-            }
-
-            .main-content {
-                margin-left: 200px;
-                width: calc(100% - 200px);
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>CareConnect Admin Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f4f6fb;
+      color: #333;
+    }
+
+    /* Header */
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 32px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .admin-header h1 {
+      font-size: 22px;
+      color: #2a4d9b;
+    }
+
+    /* Container */
+    .admin-container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px 32px;
+    }
+
+    /* Cards row */
+    .card-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      flex: 1 1 200px;
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .card h3 {
+      font-size: 15px;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2a4d9b;
+    }
+
+    /* Section cards */
+    .section-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+    }
+
+    .section-card h2 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: #2a4d9b;
+    }
+
+    /* Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e2e6f0;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: #f0f3ff;
+      font-weight: 600;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-primary {
+      background: #2a4d9b;
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: #e53935;
+      color: #fff;
+    }
+
+    .btn-success {
+      background: #43a047;
+      color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .card-row {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <div class="logo">
-            <h2>🛡️ Admin</h2>
-            <p>Mental Health Platform</p>
-        </div>
-        <ul class="nav-menu">
-            <li class="nav-item">
-                <div class="nav-link active" onclick="switchSection('dashboard')">
-                    <span class="nav-icon">📊</span>
-                    Dashboard
-                </div>
-            </li>
-            <li class="nav-item">
-                <div class="nav-link" onclick="switchSection('doctors')">
-                    <span class="nav-icon">👨‍⚕️</span>
-                    Doctor Verification
-                </div>
-            </li>
-            <li class="nav-item">
-                <div class="nav-link" onclick="switchSection('users')">
-                    <span class="nav-icon">👥</span>
-                    User Management
-                </div>
-            </li>
-            <li class="nav-item">
-                <div class="nav-link" onclick="switchSection('payments')">
-                    <span class="nav-icon">💰</span>
-                    Payments
-                </div>
-            </li>
-            <li class="nav-item">
-                <div class="nav-link" onclick="switchSection('sessions')">
-                    <span class="nav-icon">📞</span>
-                    Sessions
-                </div>
-            </li>
-            <li class="nav-item">
-                <div class="nav-link" onclick="switchSection('feedback')">
-                    <span class="nav-icon">💬</span>
-                    Feedback
-                </div>
-            </li>
-            <li class="nav-item">
-                <div class="nav-link" onclick="logout()">
+  <header class="admin-header">
+    <h1>CareConnect Admin</h1>
+    <button id="logoutBtn" class="btn btn-danger">Logout</button>
+  </header>
+
+  <main class="admin-container">
+    <!-- Summary cards -->
+    <section class="card-row">
+      <div class="card">
+        <h3>Total Doctors</h3>
+        <p id="totalDoctors">0</p>
+      </div>
+      <div class="card">
+        <h3>Pending Doctors</h3>
+        <p id="pendingDoctors">0</p>
+      </div>
+      <div class="card">
+        <h3>Total Patients</h3>
+        <p id="totalPatients">0</p>
+      </div>
+      <div class="card">
+        <h3>Total Appointments</h3>
+        <p id="totalAppointments">0</p>
+      </div>
+    </section>
+
+    <!-- Pending doctors -->
+    <section class="section-card">
+      <h2>Pending Doctor Approvals</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Specialization</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pendingDoctorsTable">
+          <!-- Example static row for now -->
+          <tr>
+            <td>Dr. Example</td>
+            <td>Cardiology</td>
+            <td>doctor@example.com</td>
+            <td>
+              <button class="btn btn-success">Approve</button>
+              <button class="btn btn-danger">Reject</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Approved doctors -->
+    <section class="section-card">
+      <h2>Approved Doctors</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Specialization</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody id="approvedDoctorsTable">
+          <!-- Example static row for now -->
+          <tr>
+            <td>Dr. Sample</td>
+            <td>Dermatology</td>
+            <td>sampledoc@example.com</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Appointments -->
+    <section class="section-card">
+      <h2>Appointments</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="appointmentsTable">
+          <!-- Example static row for now -->
+          <tr>
+            <td>John Doe</td>
+            <td>Dr. Sample</td>
+            <td>2025-01-10</td>
+            <td>10:30</td>
+            <td>Scheduled</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+ <script src="admindash.js"></script>
+
+</body>
+</html>
