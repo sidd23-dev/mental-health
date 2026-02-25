@@ -3,194 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Dashboard</title>
-
+    <title>Patient Dashboard - MENTAL HEALTH SUPPORT</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* CareConnect Unified Theme */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f4f6fb; 
+            display: flex; 
+            height: 100vh; 
+            color: #333;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
+
+        /* Sidebar */
+        .sidebar { 
+            width: 260px; 
+            background: #2a4d9b; 
+            color: white; 
+            padding: 30px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
         }
-        .sidebar {
-            width: 260px;
-            height: 100vh;
-            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
+        .sidebar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+        .logo-icon { background: white; color: #2a4d9b; padding: 5px 8px; border-radius: 4px; font-weight: bold; }
+        .nav-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 15px; 
+            margin-bottom: 8px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            color: rgba(255,255,255,0.8); 
+            gap: 10px;
         }
-        .sidebar-logo {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 20px;
-        }
-        .sidebar-logo h2 {
-            font-size: 18px;
-            margin-bottom: 5px;
-        }
-        .sidebar-logo p {
-            font-size: 11px;
-            opacity: 0.8;
-        }
-        .sidebar-menu {
-            list-style: none;
-        }
-        .menu-link {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: rgba(255,255,255,0.8);
-            cursor: pointer;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-            font-size: 14px;
-            text-decoration: none;
-        }
-        .menu-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        .menu-link.active {
-            background: rgba(255,255,255,0.15);
-            border-left-color: #4CAF50;
-            color: white;
-        }
-        .menu-icon {
-            margin-right: 12px;
-            font-size: 18px;
-        }
-        .header {
-            position: fixed;
-            top: 0;
-            left: 260px;
-            right: 0;
-            height: 70px;
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background: rgba(255,255,255,0.15); color: white; border-left: 4px solid #fff; }
+        .logout { margin-top: auto; color: white; font-weight: bold; }
+
+        /* Main Area */
+        .main { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Top Header Sync Bar */
+        .top-header {
             background: white;
-            border-bottom: 1px solid #ddd;
+            padding: 15px 40px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 0 30px;
-            z-index: 99;
+            border-bottom: 1px solid #e2e6f0;
         }
-        .header-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1a3c15;
+        .header-profile { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+        .header-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #2a4d9b; }
+
+        .content-scroll { padding: 40px; overflow-y: auto; flex-grow: 1; }
+
+        /* Welcome Card */
+        .welcome-card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+            border-left: 6px solid #2a4d9b; 
+            margin-bottom: 30px; 
+            border: 1px solid #e2e6f0;
+            border-left: 6px solid #2a4d9b;
         }
-        .main {
-            margin-left: 260px;
-            margin-top: 70px;
-            padding: 30px;
-            width: calc(100% - 260px);
-            height: calc(100vh - 70px);
-            overflow-y: auto;
+        .welcome-card h2 { color: #2a4d9b; }
+        
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.4s; }
+
+        /* Profile Card & Inputs */
+        .profile-card { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+            border: 1px solid #e2e6f0;
         }
-        .page { display: none; }
-        .page.active { display: block; }
+        .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; border-bottom: 1px solid #f0f3ff; padding-bottom: 20px; }
+        #userPhoto { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid #f0f3ff; background: #f4f6fb; }
+        
+        .section-title { font-size: 13px; font-weight: 800; color: #2a4d9b; text-transform: uppercase; margin: 25px 0 10px; grid-column: span 2; letter-spacing: 0.5px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-box { background: #fcfdfe; padding: 12px; border-radius: 6px; border: 1px solid #e2e6f0; }
+        .info-box label { font-size: 10px; font-weight: bold; color: #2a4d9b; text-transform: uppercase; display: block; }
+        
+
+        .doctor-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e6f0;
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.doctor-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
+.doc-img-small { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #2a4d9b; }
+.doc-name-bold { font-weight: 800; color: #1e293b; text-transform: uppercase; font-size: 15px; }
+.slot-btn { background: #eef2ff; color: #2a4d9b; border: 1px solid #2a4d9b; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+.slot-btn:hover { background: #2a4d9b; color: white; }
+
+        .info-box input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            color: #333;
+            margin-top: 4px;
+            outline: none;
+            font-weight: 500;
+        }
+        .info-box input:not([readonly]) {
+            border-bottom: 2px solid #2a4d9b;
+            background: #fff;
+        }
+
+        .btn-action {
+            padding: 12px 25px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
     </style>
 </head>
-
 <body>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <h2>🩺 Mental Health Supporter</h2>
-            <p>AI-Driven Mental Health System</p>
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo-icon">AI</div>
+        <h2>MENTAL HEALTH</h2>
+    </div>
+    <nav class="nav-menu">
+        <div class="nav-item active" onclick="switchTab('home', this)">
+            <i data-lucide="layout-dashboard"></i><span>Home</span>
+        </div>
+        <div class="nav-item" onclick="window.location.href='aichat.html'">
+            <i data-lucide="message-square-heart"></i><span>Chat With AI</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('booking', this)">
+            <i data-lucide="calendar-plus"></i><span>Doctor Booking</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('sessions', this)">
+            <i data-lucide="video"></i><span>My Sessions</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('profile', this)">
+            <i data-lucide="user-cog"></i><span>My Profile</span>
+        </div>
+    </nav>
+    <div class="nav-item logout" onclick="logout()">
+        <i data-lucide="log-out"></i><span>Logout</span>
+    </div>
+</div>
+
+<div class="main">
+    <header class="top-header">
+        <h3 id="viewTitle" style="color: #2a4d9b;">Dashboard</h3>
+        <div class="header-profile">
+            <span id="headerName" style="font-weight: 600;">Loading...</span>
+            <img id="headerImg" src="" class="header-img">
+        </div>
+    </header>
+
+    <div class="content-scroll">
+        <div class="welcome-card">
+            <h1 id="userGreet">Welcome!</h1>
+            <p id="todayDate"></p>
         </div>
 
-        <ul class="sidebar-menu">
+        <div id="home" class="view active">
+            <p>Welcome to your AI Heal Dashboard. Use the sidebar to access mental health tools.</p>
+        </div>
 
-            <li>
-                <div class="menu-link active" onclick="showPage('dashboard')">
-                    <span class="menu-icon">🏠</span> Dashboard
+        <div id="booking" class="view">
+    <h2 style="color: #2a4d9b; margin-bottom: 20px;">Find a Doctor</h2>
+    
+    <div style="margin-bottom: 25px; position: relative; max-width: 500px;">
+        <input type="text" id="doctorSearch" placeholder="Search by name, specialty, or clinic..." 
+               style="width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e6f0; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    </div>
+    
+    <div id="doctorList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;"></div>
+
+    <div id="timeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:100; justify-content:center; align-items:center;">
+        <div style="background:white; padding:30px; border-radius:10px; width:400px; max-height: 80vh; overflow-y: auto;">
+            <h3 id="modalName" style="color:#2a4d9b"></h3>
+            <p style="font-size:14px; color:#666; margin-bottom: 15px;">Available Time Slots:</p>
+            <div id="slotsList"></div> <button onclick="document.getElementById('timeModal').style.display='none'" style="width:100%; margin-top:15px; background:#ccc; padding:10px; border:none; border-radius:5px; cursor:pointer;">Close</button>
+        </div>
+    </div>
+</div>
+</div>
+        <div id="sessions" class="view"><h2>Video Sessions Section</h2></div>
+
+        <div id="profile" class="view">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <img id="userPhoto" src="" alt="Profile Photo">
+                    <div>
+                        <h2 id="dispName">User Name</h2>
+                        <p id="dispEmail" style="color:#666;"></p>
+                    </div>
                 </div>
-            </li>
 
-           
-            <li>
-                <a href="aichat.html" class="menu-link">
-                    <span class="menu-icon">🤖</span> Chat With AI (Releasing mental Issues)
-                </a>
-            </li>
-
-            <li>
-                <div class="menu-link" onclick="showPage('booking')">
-                    <span class="menu-icon">📅</span> Doctor Booking
-                </div>
-            </li>
-
-            <li>
-                <div class="menu-link" onclick="showPage('sessions')">
-                    <span class="menu-icon">📞</span> My Sessions
-                </div>
-            </li>
-
-           
-            <li>
-                <a href="patprofile.html" class="menu-link">
-                    <span class="menu-icon">👤</span> Profile
-                </a>
-            </li>
-
-        </ul>
+              <form id="profileForm" class="info-grid">
+    <div style="grid-column: span 2; text-align: center; margin-bottom: 15px;">
+        <label id="photoLabel" style="display:none; background:#2a4d9b; color:white; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
+            Change Photo <input type="file" id="newPhotoInput" accept="image/*" style="display:none">
+        </label>
     </div>
 
-    <!-- HEADER -->
-    <div class="header">
-        <div class="header-title">Patient Dashboard</div>
+    <div class="section-title">Personal Details</div>
+<div class="info-box"><label>Full Name</label><input type="text" id="edit-name" name="fullName" readonly></div>
+<div class="info-box"><label>Phone</label><input type="text" id="edit-phone" name="phone" readonly></div>
+
+<div class="info-box"><label>Age</label><input type="number" id="edit-age" name="age" readonly></div>
+<div class="info-box"><label>Blood Group</label><input type="text" id="edit-blood" name="bloodGroup" readonly></div>
+
+<div class="info-box" style="grid-column: span 2;"><label>Address</label><input type="text" id="edit-address" name="address" readonly></div>
+<div class="info-box"><label>City</label><input type="text" id="edit-city" name="city" readonly></div>
+<div class="info-box"><label>State</label><input type="text" id="edit-state" name="state" readonly></div>
+    <div class="info-box" style="grid-column: span 2;"><label>Allergies</label><input type="text" id="edit-allergies" name="allergies" readonly></div>
+    <div class="info-box" style="grid-column: span 2;"><label>Chronic Conditions</label><input type="text" id="edit-conditions" name="conditions" readonly></div>
+
+    <div class="section-title">Emergency Contact</div>
+    <div class="info-box"><label>Contact Person</label><input type="text" id="edit-eName" name="eName" readonly></div>
+    <div class="info-box"><label>Relationship</label><input type="text" id="edit-eRelation" name="eRelation" readonly></div>
+    <div class="info-box" style="grid-column: span 2;"><label>Emergency Phone</label><input type="text" id="edit-ePhone" name="ePhone" readonly></div>
+    
+    <div style="grid-column: span 2; margin-top: 20px;">
+        <button type="button" id="editBtn" class="btn-action" onclick="enableEdit()" style="background: #2a4d9b; color: white; width:100%;">Edit Profile</button>
+        <button type="button" id="saveBtn" onclick="saveToDatabase()" style="display:none; background: #43a047; color: white; width:100%;">Save Changes</button>
     </div>
-
-    <!-- MAIN -->
-    <div class="main">
-
-        <!-- Dashboard -->
-        <div id="dashboard" class="page active">
-            <h2>Welcome to your Dashboard</h2>
-            <p>Your mental health support system is here.</p>
+</form>
+            </div>
         </div>
-
-        <!-- Booking -->
-        <div id="booking" class="page">
-            <h2>Doctor Booking</h2>
-            <p>Book appointments with available doctors.</p>
-        </div>
-
-        <!-- Sessions -->
-        <div id="sessions" class="page">
-            <h2>My Sessions</h2>
-            <p>View your upcoming and past sessions.</p>
-        </div>
-
     </div>
+</div>
 
 <script>
-    function showPage(pageId) {
-        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-        document.getElementById(pageId).classList.add("active");
+    lucide.createIcons();
+    const API_URL = "http://localhost:5000/api";
+    let userData = JSON.parse(localStorage.getItem('userData'));
 
-        // Update active menu link for internal pages only
-        document.querySelectorAll(".menu-link").forEach(link => {
-            if (!link.hasAttribute('href')) {
-                link.classList.remove("active");
+    window.onload = function() {
+        if(!userData) {
+            window.location.href = "patlogin.html";
+            return;
+        }
+        refreshUI();
+    };
+
+ function refreshUI() {
+    if (!userData) return;
+
+    // Add this inside your <script> tag, ideally near the other functions
+document.getElementById('newPhotoInput').addEventListener('change', function(e) {
+    if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            // Update both the profile page image and the top header image for a real-time feel
+            document.getElementById('userPhoto').src = event.target.result;
+            document.getElementById('headerImg').src = event.target.result;
+        };
+        reader.readAsDataURL(this.files[0]);
+    }
+});
+
+    // 1. Sync Name and Photo (Fixing Windows Path slashes)
+    const photoPath = userData.photo ? `http://localhost:5000/${userData.photo.replace(/\\/g, '/')}` : 'https://via.placeholder.com/110';
+    document.getElementById('headerName').innerText = userData.fullName;
+    document.getElementById('headerImg').src = photoPath;
+    document.getElementById('userPhoto').src = photoPath;
+    document.getElementById('dispName').innerText = userData.fullName;
+    document.getElementById('dispEmail').innerText = userData.email;
+
+    // 2. Map PERSONAL DETAILS
+    document.getElementById('edit-name').value = userData.fullName || '';
+    document.getElementById('edit-phone').value = userData.phone || '';
+    document.getElementById('edit-age').value = userData.age || '';
+    document.getElementById('edit-blood').value = userData.bloodGroup || '';
+    document.getElementById('edit-address').value = userData.address || '';
+    document.getElementById('edit-city').value = userData.city || '';
+    document.getElementById('edit-state').value = userData.state || '';
+
+    // 3. Map MEDICAL & EMERGENCY (This ensures they appear on screen)
+    document.getElementById('edit-allergies').value = userData.allergies || '';
+    document.getElementById('edit-conditions').value = userData.conditions || '';
+    document.getElementById('edit-eName').value = userData.eName || '';
+    document.getElementById('edit-eRelation').value = userData.eRelation || '';
+    document.getElementById('edit-ePhone').value = userData.ePhone || '';
+}
+    // patdash.html - Update your switchTab function
+function switchTab(id, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if(el) el.classList.add('active');
+    
+    document.getElementById('viewTitle').innerText = id.charAt(0).toUpperCase() + id.slice(1);
+
+    // This ensures doctors are fetched from the API when you click the tab
+    if(id === 'booking') {
+        showDoctors();
+    }
+}
+function enableEdit() {
+    // 1. Unlock all input boxes
+    document.querySelectorAll('#profileForm input').forEach(inp => inp.removeAttribute('readonly'));
+    
+    // 2. Show the "Change Photo" label
+    document.getElementById('photoLabel').style.display = 'inline-block';
+    
+    // 3. Visual cue: change photo border to dashed blue so user knows it's editable
+    const photo = document.getElementById('userPhoto');
+    photo.style.border = "3px dashed #2a4d9b";
+    photo.style.opacity = "0.8";
+
+    // 4. Toggle Buttons
+    document.getElementById('editBtn').style.display = 'none';
+    document.getElementById('saveBtn').style.display = 'block';
+}
+
+// 1. Function to fetch and show doctors
+let allDoctors = []; // To keep track of doctors for searching
+
+async function showDoctors() {
+    try {
+        const res = await fetch('http://localhost:5000/api/patient/available-doctors');
+        allDoctors = await res.json();
+        renderDoctors(allDoctors);
+    } catch (err) {
+        console.error("Error loading doctors:", err);
+    }
+}
+
+function renderDoctors(doctors) {
+    const list = document.getElementById('doctorList');
+    list.innerHTML = ""; 
+
+    if (doctors.length === 0) {
+        list.innerHTML = `<p style="grid-column: span 3; text-align: center; color: #718096;">No doctors found matching your search.</p>`;
+        return;
+    }
+
+    doctors.forEach(doc => {
+        const photo = doc.photo ? `http://localhost:5000/${doc.photo.replace(/\\/g, '/')}` : 'https://via.placeholder.com/80';
+        list.innerHTML += `
+            <div class="doctor-card">
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                    <img src="${photo}" class="doc-img-small">
+                    <div>
+                        <h4 class="doc-name-bold">DR. ${doc.firstName} ${doc.lastName}</h4>
+                        <p style="font-size:13px; color:#2a4d9b; font-weight:600;">${doc.specialization}</p>
+                    </div>
+                </div>
+                <div style="font-size:13px; color:#64748b; line-height:1.6; margin-bottom:15px;">
+                    <p><i data-lucide="map-pin" style="width:12px"></i> ${doc.clinicName}</p>
+                    <p><i data-lucide="briefcase" style="width:12px"></i> ${doc.experience} Years Experience</p>
+                </div>
+                <button onclick="openTimePicker('${doc.email}', 'Dr. ${doc.firstName} ${doc.lastName}')" 
+                        style="width:100%; background:#2a4d9b; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold; transition: 0.3s;">
+                    View Available Slots
+                </button>
+            </div>
+        `;
+    });
+    lucide.createIcons(); // Re-render icons
+}
+
+async function openTimePicker(email, name) {
+    try {
+        const res = await fetch(`http://localhost:5000/api/doctor/availability/${email}`);
+        const slots = await res.json();
+        const slotsList = document.getElementById('slotsList');
+        
+        document.getElementById('modalName').innerText = name;
+        slotsList.innerHTML = ""; 
+
+        if(slots.length > 0) {
+            // Group slots by Date for better UI
+            slots.forEach(slot => {
+                slotsList.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #f1f5f9;">
+                        <div>
+                            <p style="font-size:11px; color:#64748b; margin:0;">${slot.date}</p>
+                            <p style="font-size:14px; font-weight:600; margin:0;">${slot.displayTime}</p>
+                        </div>
+                        <button onclick="confirmBooking('${slot._id}', '${slot.displayTime}')" class="slot-btn">Book</button>
+                    </div>
+                `;
+            });
+            document.getElementById('timeModal').style.display = 'flex';
+        } else {
+            alert("No available slots for this doctor today.");
+        }
+    } catch (e) {
+        alert("Error loading slots.");
+    }
+}
+
+async function confirmBooking(slotId, timeRange) {
+    const patientEmail = userData.email; 
+    
+    if(confirm(`Do you want to book the slot for ${timeRange}?`)) {
+        try {
+            const res = await fetch('http://localhost:5000/api/bookings/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    slotId: slotId,
+                    patientEmail: patientEmail,
+                    timeSlot: timeRange
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                alert("Appointment Booked Successfully! You will receive a confirmation email.");
+                document.getElementById('timeModal').style.display = 'none';
+                // Refresh doctors/slots
+                showDoctors(); 
+            } else {
+                alert("Booking failed: " + data.message);
             }
-        });
-        if (event.target && !event.target.hasAttribute('href')) {
-            event.target.classList.add("active");
+        } catch (err) {
+            console.error("Booking error:", err);
+            alert("Error connecting to the server.");
         }
     }
-</script>
+}
 
+// Make sure to trigger initial load
+document.addEventListener('DOMContentLoaded', () => {
+    // Other init code...
+    showDoctors(); 
+});
+
+// Make sure doctors load when the "Booking" tab is clicked
+// In your switchTab function, add:
+// if(id === 'booking') showDoctors();
+
+// 3. Make sure the doctors load when you click the "Booking" tab
+// Look for your switchTab function and make sure it calls showDoctors()
+async function saveToDatabase() {
+    const formData = new FormData();
+
+    // 1. Package ALL text fields
+    formData.append('email', userData.email); // Required to find the user in DB
+    formData.append('fullName', document.getElementById('edit-name').value);
+    formData.append('phone', document.getElementById('edit-phone').value);
+    formData.append('address', document.getElementById('edit-address').value);
+    formData.append('city', document.getElementById('edit-city').value);
+    formData.append('state', document.getElementById('edit-state').value);
+    formData.append('age', document.getElementById('edit-age').value);
+    formData.append('bloodGroup', document.getElementById('edit-blood').value);
+    formData.append('allergies', document.getElementById('edit-allergies').value);
+    formData.append('conditions', document.getElementById('edit-conditions').value);
+    formData.append('eName', document.getElementById('edit-eName').value);
+    formData.append('eRelation', document.getElementById('edit-eRelation').value);
+    formData.append('ePhone', document.getElementById('edit-ePhone').value);
+
+    // 2. Check for a new photo file
+    const photoInput = document.getElementById('newPhotoInput');
+    if (photoInput.files[0]) {
+        formData.append('photo', photoInput.files[0]);
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/patient/update`, {
+            method: 'PUT',
+            body: formData // No headers needed for FormData
+        });
+        
+        const data = await res.json();
+        if(data.success) {
+            alert("Profile Fully Updated!");
+            // 3. Update local storage so the screen refreshes correctly
+            localStorage.setItem('userData', JSON.stringify(data.user)); 
+            location.reload(); 
+        } else {
+            alert("Update failed: " + data.message);
+        }
+    } catch (e) {
+        alert("Server error. Ensure backend is running on port 5000.");
+    }
+}
+    function logout() {
+        localStorage.clear();
+        window.location.href = "patlogin.html";
+    }
+</script>
 </body>
 </html>

@@ -3,535 +3,503 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Dashboard - AI Mental Health</title>
+    <title>Doctor Dashboard - AI HEAL</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 260px;
-            height: 100vh;
-            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-logo {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 20px;
-        }
-
-        .sidebar-logo h2 {
-            font-size: 18px;
-            margin-bottom: 5px;
-        }
-
-        .sidebar-logo p {
-            font-size: 11px;
-            opacity: 0.8;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .menu-link {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: rgba(255,255,255,0.8);
-            cursor: pointer;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-            font-size: 14px;
-        }
-
-        .menu-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .menu-link.active {
-            background: rgba(255,255,255,0.15);
-            border-left-color: #4CAF50;
-            color: white;
-        }
-
-        .menu-icon {
-            margin-right: 12px;
-            font-size: 18px;
-        }
-
-        /* Header */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 260px;
-            right: 0;
-            height: 70px;
-            background: white;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 30px;
-            z-index: 99;
-        }
-
-        .header-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1a3c15;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .notification-badge {
-            position: relative;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .badge-count {
-            position: absolute;
-            top: -5px;
-            right: -8px;
-            background: #e74c3c;
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        /* Main Content */
-        .main {
-            margin-left: 260px;
-            margin-top: 70px;
-            padding: 30px;
-            width: calc(100% - 260px);
-            height: calc(100vh - 70px);
-            overflow-y: auto;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        /* Availability Toggle */
-        .availability-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-        }
-
-        .availability-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .availability-header h3 {
-            color: #1a3c15;
-            font-size: 20px;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 60px;
-            height: 30px;
-            background: #ccc;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .toggle-switch.active {
-            background: #4CAF50;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 24px;
-            height: 24px;
-            background: white;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-
-        .toggle-switch.active .toggle-slider {
-            left: 33px;
-        }
-
-        .status-text {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .status-text.available {
-            color: #4CAF50;
-            font-weight: 600;
-        }
-
-        .status-text.unavailable {
-            color: #e74c3c;
-            font-weight: 600;
-        }
-
-        /* Time Slots Section */
-        .time-slots-section {
-            background: #f8fff8;
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 4px solid #2d5a27;
-        }
-
-        .time-slots-section h4 {
-            color: #1a3c15;
-            margin-bottom: 15px;
-        }
-
-        .time-slot-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .time-slot {
-            padding: 10px;
-            background: white;
-            border: 2px solid #2d5a27;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .time-slot:hover {
-            background: #2d5a27;
-            color: white;
-        }
-
-        .time-slot.selected {
-            background: #2d5a27;
-            color: white;
-        }
-
-        .time-slot.booked {
-            background: #e74c3c;
-            color: white;
-            border-color: #e74c3c;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .save-slots-btn {
-            padding: 12px 24px;
-            background: #2d5a27;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        .save-slots-btn:hover {
-            background: #1a3c15;
-        }
-
-        /* Booking Requests */
-        .booking-requests {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .booking-requests h3 {
-            color: #1a3c15;
-            margin-bottom: 20px;
-        }
-
-        .booking-card {
-            background: #f9f9f9;
-            border-left: 4px solid #2d5a27;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .booking-card.pending {
-            border-left-color: #f39c12;
-        }
-
-        .booking-card.approved {
-            border-left-color: #4CAF50;
-        }
-
-        .booking-card.rejected {
-            border-left-color: #e74c3c;
-        }
-
-        .booking-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .patient-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a3c15;
-        }
-
-        .booking-status {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .booking-status.pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .booking-status.approved {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .booking-status.rejected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .booking-details {
-            margin-bottom: 15px;
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-        }
-
-        .booking-details p {
-            margin: 5px 0;
-        }
-
-        .booking-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .approve-btn, .reject-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .approve-btn {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .approve-btn:hover {
-            background: #45a049;
-        }
-
-        .reject-btn {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .reject-btn:hover {
-            background: #c0392b;
-        }
-
-        .view-ai-btn {
-            padding: 10px 20px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .view-ai-btn:hover {
-            background: #2980b9;
-        }
-
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .stat-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        .stat-number {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1a3c15;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #555;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 200px;
-            }
-            .header {
-                left: 200px;
-            }
-            .main {
-                margin-left: 200px;
-                width: calc(100% - 200px);
-            }
-        }
+        /* CareConnect Professional Theme Applied */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { display: flex; background-color: #f4f6fb; height: 100vh; overflow: hidden; }
+
+        /* Sidebar Navigation - Blue Theme */
+        .sidebar { width: 260px; background: #2a4d9b; color: white; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 15px 25px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: #cbd5e0; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; border-left: 4px solid #fff; }
+        /* Sidebar Navigation - Blue Theme */
+.logout-item { 
+    margin-top: auto; 
+    padding: 20px 25px; 
+    border-top: 1px solid rgba(255,255,255,0.1);
+     color: #ffffff; 
+    cursor: pointer; 
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Change: When hovering, the text becomes white */
+.logout-item:hover { 
+    background: rgba(255, 255, 255, 0.1); 
+     color: #feb2b2; 
+   
+    border-left: 4px solid #fff; /* Matching the other nav-item styles */
+}
+
+        /* Main Content Area */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .top-bar { height: 70px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        .user-profile-header { display: flex; align-items: center; gap: 12px; }
+        /* This controls the small photo in the top bar */
+.header-circle-img { 
+    width: 40px !important; 
+    height: 40px !important; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 2px solid #2a4d9b;
+}
+
+/* This ensures the photo inside the Top Bar container doesn't explode in size */
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* This specifically targets the image on the DASHBOARD stats area if needed */
+#main-profile-pic {
+    width: 120px; /* Reduced from 150px for a cleaner look */
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+        .container { padding: 30px; max-width: 1000px; }
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Profile Card - CareConnect Style */
+        .profile-card { background: white; border-radius: 8px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; border: 1px solid #e2e6f0; }
+        .main-profile-img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 5px solid #f0f3ff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        .profile-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; margin-top: 30px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { font-size: 13px; font-weight: 600; color: #2a4d9b; }
+        .input-group input, .input-group select { padding: 12px; border: 1px solid #e2e6f0; border-radius: 4px; outline: none; transition: 0.3s; background: #fcfdfe; }
+        .input-group input:focus { border-color: #2a4d9b; box-shadow: 0 0 0 3px rgba(42, 77, 155, 0.1); }
+        .full-width { grid-column: span 2; }
+
+        .update-btn { grid-column: span 2; background: #2a4d9b; color: white; padding: 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .update-btn:hover { background: #1e3a75; transform: translateY(-2px); }
+
+        /* Stats - CareConnect Blue */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 20px; border: 1px solid #e2e6f0; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        h3 { color: #2a4d9b; }
+
+        /* Update this section in your <style> tag */
+/* Professional Toggle & Status Bar */
+.status-container { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    background: #f8fafc; 
+    padding: 8px 15px; 
+    border-radius: 50px; 
+    border: 1px solid #e2e8f0; 
+}
+
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+/* 1. Default state (OFFLINE) - Red background */
+.slider { 
+    position: absolute; 
+    cursor: pointer; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background-color: #e53e3e; /* Standard Red */
+    transition: .4s; 
+    border-radius: 20px; 
+}
+
+/* 2. ON state (ONLINE) - Green background */
+input:checked + .slider { 
+    background-color: #38a169 !important; /* Standard Green */
+}
+
+/* The white circle inside the toggle */
+.slider:before { 
+    position: absolute; 
+    content: ""; 
+    height: 14px; 
+    width: 14px; 
+    left: 3px; 
+    bottom: 3px; 
+    background-color: white; 
+    transition: .4s; 
+    border-radius: 50%; 
+}
+input:checked + .slider { background-color: #48bb78; }
+input:checked + .slider:before { transform: translateX(20px); }
+
+/* Update these in your <style> section */
+#statusLabel { 
+    font-size: 12px; 
+    font-weight: 800; 
+    transition: 0.3s; /* Smooth color change */
+}
+
+/* Default Red state */
+.status-offline { color: #e53e3e !important; } 
+
+/* Green state */
+.status-online { color: #38a169 !important; }
+
+/* Optional: Make the slider green when checked */
+input:checked + .slider { background-color: #38a169 !important; }
+
+/* Slot Grid Styling */
+.slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 20px; }
+.slot-item { 
+    background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; 
+    display: flex; align-items: center; justify-content: space-between; border-left: 5px solid #2a4d9b; 
+}
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR -->
     <div class="sidebar">
-        <div class="sidebar-logo">
-            <h2>👨‍⚕️ Doctor </h2>
-            <p>AI-Driven Mental Health System</p>
+        <div class="sidebar-header"><h3>AI HEAL</h3></div>
+        <div class="nav-menu">
+            <div class="nav-item active" onclick="switchView('dashboard', this)"><i data-lucide="layout-dashboard"></i> Dashboard</div>
+            <div class="nav-item" onclick="switchView('slots', this)"><i data-lucide="clock"></i> Time Slots</div>
+            <div class="nav-item" onclick="switchView('sessions', this)"><i data-lucide="video"></i> Sessions</div>
+            <div class="nav-item" onclick="switchView('profile', this)"><i data-lucide="user-circle"></i> Profile</div>
         </div>
-
-        <ul class="sidebar-menu">
-            <li>
-                <div class="menu-link active" onclick="showPage('dashboard')">
-                    <span class="menu-icon">🏠</span> Dashboard
-                </div>
-            </li>
-            <li>
-                <div class="menu-link" onclick="showPage('availability')">
-                    <span class="menu-icon">⏰</span> Availability & Time Slots
-                </div>
-            </li>
-            <li>
-                <div class="menu-link" onclick="showPage('bookings')">
-                    <span class="menu-icon">📋</span> Booking Requests
-                    <span id="bookingBadge" class="badge-count" style="margin-left: auto;">3</span>
-                </div>
-            </li>
-            <li>
-                <div class="menu-link" onclick="showPage('patients')">
-                    <span class="menu-icon">👥</span> My Patients
-                </div>
-            </li>
-            <li>
-                <div class="menu-link" onclick="showPage('sessions')">
-                    <span class="menu-icon">📞</span> Video Sessions
-                </div>
-            </li>
-            <li>
-                <a href="docprofile.html" class="menu-link">
-                    <span class="menu-icon">👤</span> Profile
-                </a>
-                
-            </li>
-        </ul>
+        <div class="nav-item logout-item" onclick="logout()"><i data-lucide="log-out"></i> Logout</div>
     </div>
 
-    <!-- HEADER -->
-    <div class="header">
-        <div class="header-title">Doctor Dashboard</div>
-        <div class="header-right">
-            <div class="notification-badge" onclick="showPage('bookings')">
-                🔔
-                <span class="badge-count" id="headerBadge">3</span>
+    
+
+    <div class="main-content">
+     <div class="top-bar">
+    <div></div>
+    <div class="user-profile-header">
+        <span id="header-name" style="font-weight: 600; color: #1e293b;">Dr. Loading...</span>
+        <img id="header-img" src="https://via.placeholder.com/40" class="header-circle-img">
+    </div>
+</div>
+
+        <div class="container">
+            <div id="dashboard" class="view active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #f0f3ff; color: #2a4d9b;"><i data-lucide="calendar"></i></div>
+                        <div><h3>12</h3><p style="font-size: 12px; color: #718096;">Total Bookings</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #f0f3ff; color: #2a4d9b;"><i data-lucide="users"></i></div>
+                        <div><h3>08</h3><p style="font-size: 12px; color: #718096;">New Patients</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fff9e6; color: #f6ad55;"><i data-lucide="star"></i></div>
+                        <div><h3>4.9</h3><p style="font-size: 12px; color: #718096;">Rating</p></div>
+                    </div>
+                </div>
+                <div class="profile-card" style="text-align: left;">
+                    <h3 style="margin-bottom: 10px;">Upcoming Today</h3>
+                    <p style="color: #718096;">No sessions scheduled for today yet.</p>
+                </div>
             </div>
-            <span>Dr. Sidharth Saju</span>
+
+         <div id="profile" class="view">
+    <div class="profile-card" style="text-align: left;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img id="main-profile-pic" src="https://via.placeholder.com/150" class="main-profile-img">
+            <div id="photoLabel" style="display:none;">
+                <label for="newPhotoInput" style="cursor:pointer; color:#2a4d9b; font-size:12px; font-weight:bold;">Change Photo</label>
+                <input type="file" id="newPhotoInput" style="display:none;" accept="image/*">
+            </div>
         </div>
-    </div>
+        
+        <h2 id="profile-display-name" style="color: #2a4d9b; text-align:center;">Dr. Name</h2>
+        <p id="profile-display-specialty" style="color: #718096; margin-bottom: 20px; text-align:center;">Specialization</p>
+        
+        <hr style="border: 0; border-top: 1px solid #e2e6f0; margin: 20px 0;">
 
-    <!-- MAIN CONTENT -->
-    <div class="main">
-
-        <!-- Dashboard Page -->
-        <div id="dashboard" class="page active">
-            <h2 style="color: #1a3c15; margin-bottom: 20px;">Welcome, Dr. Sidharth Saju</h2>
+        <form id="doctorProfileForm" class="profile-form">
+            <div class="input-group">
+                <label>First Name</label>
+                <input type="text" id="edit-fname" readonly>
+            </div>
+            <div class="input-group">
+                <label>Last Name</label>
+                <input type="text" id="edit-lname" readonly>
+            </div>
+            <div class="input-group full-width">
+                <label>Hospital / Clinic Name</label>
+                <input type="text" id="edit-clinic" readonly>
+            </div>
+            <div class="input-group">
+                <label>Years of Experience</label>
+                <input type="number" id="edit-experience" readonly>
+            </div>
+            <div class="input-group">
+                <label>Specialization</label>
+                <select id="edit-spec" disabled>
+                    <option>Psychiatrist</option>
+                    <option>Psychologist</option>
+                    <option>Counsellor</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Registration ID (Read Only)</label>
+                <input type="text" id="edit-regid" readonly style="background: #f4f6fb;">
+            </div>
+            <div class="input-group">
+                <label>Email (Read Only)</label>
+                <input type="email" id="edit-email" readonly style="background: #f4f6fb;">
+            </div>
             
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">📅</div>
-                    <div class="stat-number">12</div>
-                    <div class="stat-label">Today's Appointments</div>
+            <div class="full-width" style="margin-top: 20px;">
+                <button type="button" id="editBtn" class="update-btn" onclick="enableDoctorEdit()">Edit Profile</button>
+                <button type="button" id="saveBtn" class="update-btn" onclick="saveDoctorToDatabase()" style="display:none; background: #43a047;">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="slots" class="view">
+    <div class="profile-card" style="text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: #2a4d9b;">Manage Availability</h3>
+            <div class="status-container">
+                <span id="statusLabel" class="status-offline">OFFLINE</span>
+                <label class="switch">
+                    <input type="checkbox" id="statusToggle" onchange="updateOnlineStatus()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr 1.5fr auto; gap: 15px; align-items: end; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <div class="input-group">
+                <label>Date</label>
+                <input type="text" id="autoDate" readonly style="background: #edf2f7;">
+            </div>
+
+            <div class="input-group">
+                <label>Start Time</label>
+                <div style="display: flex; gap: 5px;">
+                    <input type="time" id="slotStartTime" style="flex: 2;">
+                    <select id="startPeriod" style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #e2e6f0;">
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">⏳</div>
-                    <div class="stat-number">3</div>
-                    <div class="stat-label">Pending Requests</div>
+            </div>
+
+            <div class="input-group">
+                <label>End Time</label>
+                <div style="display: flex; gap: 5px;">
+                    <input type="time" id="manualEnd" style="flex: 2;">
+                    <select id="endPeriod" style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #e2e6f0;">
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-number">48</div>
-                    <div class="stat-label">Total Patients</div>
+            </div>
+
+            <button onclick="saveSingleSlot()" class="update-btn" style="margin-top:0; padding: 12px 25px;">Add Slot</button>
+        </div>
+
+        <div id="slotsContainer" class="slot-grid"></div>
+
+        <div id="slotMsg" style="margin-top: 20px; padding: 20px; border-radius: 8px; font-size: 16px; font-weight: bold; text-align: center; display: none; background: #f0fff4; border: 1px solid #c6f6d5; color: #276749;"></div>
+    </div>
+</div>
+        
+<script>
+    // Initialize Icons and Global Variables
+    lucide.createIcons();
+    const docEmail = localStorage.getItem('docEmail');
+    
+    // Redirect if not logged in
+    if (!docEmail) {
+        window.location.href = 'doclogin.html';
+    }
+
+    // --- NAVIGATION LOGIC ---
+    function switchView(viewId, element) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        
+        document.getElementById(viewId).classList.add('active');
+        element.classList.add('active');
+        
+        if(viewId === 'profile' || viewId === 'dashboard' || viewId === 'slots') {
+            loadDoctorData();
+        }
+    }
+
+    // --- DATA PERSISTENCE LOGIC ---
+    async function loadDoctorData() {
+        try {
+            const res = await fetch(`http://localhost:5000/api/doctor/profile/${docEmail}`);
+            const doc = await res.json();
+            
+            if (doc) {
+                const fullName = `Dr. ${doc.firstName} ${doc.lastName}`;
+                const imgUrl = doc.photo ? `http://localhost:5000/${doc.photo.replace(/\\/g, '/')}` : 'https://via.placeholder.com/150';
+                
+                // Update Images and Names
+                document.getElementById('header-name').innerText = fullName;
+                const headerImg = document.querySelector('.header-circle-img');
+                if(headerImg) headerImg.src = imgUrl;
+                document.getElementById('main-profile-pic').src = imgUrl;
+
+                document.getElementById('profile-display-name').innerText = fullName;
+                document.getElementById('profile-display-specialty').innerText = `${doc.specialization} | ${doc.clinicName}`;
+
+                // Fill Form Inputs
+                document.getElementById('edit-fname').value = doc.firstName || '';
+                document.getElementById('edit-lname').value = doc.lastName || '';
+                document.getElementById('edit-clinic').value = doc.clinicName || '';
+                document.getElementById('edit-experience').value = doc.experience || 0;
+                document.getElementById('edit-spec').value = doc.specialization || 'Psychiatrist';
+                document.getElementById('edit-regid').value = doc.registrationId || '';
+                document.getElementById('edit-email').value = doc.email || '';
+
+                // 1. PERSIST TOGGLE STATUS (The "Check" state)
+                const toggle = document.getElementById('statusToggle');
+                const label = document.getElementById('statusLabel');
+                
+                if (doc.status === 'online') {
+                    toggle.checked = true;
+                    label.innerText = "ONLINE";
+                    label.className = "status-online"; // Direct class assignment is cleaner
+                } else {
+                    toggle.checked = false;
+                    label.innerText = "OFFLINE";
+                    label.className = "status-offline";
+                }
+
+                // 2. FETCH SLOTS IMMEDIATELY
+                loadExistingSlots();
+            }
+        } catch (err) { 
+            console.error("Error loading doctor data:", err); 
+        }
+    }
+async function loadExistingSlots() {
+    try {
+        const res = await fetch(`http://localhost:5000/api/doctor/availability/${docEmail}`);
+        const slots = await res.json();
+        const container = document.getElementById('slotsContainer');
+        if (!container) return;
+
+        container.innerHTML = ""; 
+
+        if (slots.length === 0) {
+            container.innerHTML = "<p style='color: #718096; padding: 20px;'>No active slots found.</p>";
+            return;
+        }
+
+        slots.forEach(slot => {
+            // This displays the slots that the server sent (which are already filtered for availability)
+            container.innerHTML += `
+                <div class="slot-item">
+                    <div>
+                        <strong style="color: #2a4d9b;">${slot.date}</strong><br>
+                        <span style="font-size: 14px;">${slot.displayTime}</span>
+                    </div>
+                    <div style="font-size: 11px; color: #48bb78; font-weight: bold; text-transform: uppercase; background: #f0fff4; padding: 4px 8px; border-radius: 4px; border: 1px solid #c6f6d5;">
+                        Available
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-
+            `;
+        });
+    } catch (err) {
+        console.error("Error loading slots:", err);
+    }
+}
+    // --- ACTION LOGIC ---
+    async function updateOnlineStatus() {
+        const isOnline = document.getElementById('statusToggle').checked;
+        const label = document.getElementById('statusLabel');
+        
+        label.innerText = isOnline ? "ONLINE" : "OFFLINE";
+        label.className = isOnline ? "status-online" : "status-offline";
+
+        try {
+            await fetch('http://localhost:5000/api/doctor/status', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: docEmail, isOnline: isOnline })
+            });
+        } catch (e) { 
+            console.error("Status update failed", e); 
+        }
+    }
+async function saveSingleSlot() {
+    const date = document.getElementById('autoDate').value;
+    const startVal = document.getElementById('slotStartTime').value; 
+    const endVal = document.getElementById('manualEnd').value;
+    const startAMPM = document.getElementById('startPeriod').value;
+    const endAMPM = document.getElementById('endPeriod').value;
+    const msgBox = document.getElementById('slotMsg');
+
+    if (!startVal || !endVal) return alert("Please select both start and end times.");
+
+    const startTimeFormatted = `${startVal} ${startAMPM}`;
+    const endTimeFormatted = `${endVal} ${endAMPM}`;
+
+    const slotData = {
+        doctorEmail: docEmail,
+        date: date,
+        startTime: startTimeFormatted,
+        endTime: endTimeFormatted,
+        status: 'available'
+    };
+
+    try {
+        const res = await fetch('http://localhost:5000/api/doctor/add-slot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(slotData)
+        });
+        const data = await res.json();
+
+        // Inside saveSingleSlot() in docpage.html
+if (data.success || res.ok) {
+    msgBox.innerText = `Your time slot added successfully from ${startTimeFormatted} to ${endTimeFormatted}`;
+    msgBox.style.display = "block";
+    
+    loadExistingSlots();
+
+            // Reset inputs
+            document.getElementById('slotStartTime').value = "";
+            document.getElementById('manualEnd').value = "";
+
+            // Remove the message after 5 seconds
+            setTimeout(() => {
+                msgBox.style.display = "none";
+                msgBox.innerText = "";
+            }, 5000);
+        }
+    } catch (err) { 
+        msgBox.innerText = "Error connecting to server.";
+        msgBox.style.display = "block";
+        msgBox.style.background = "#fff5f5";
+        msgBox.style.color = "#c53030";
+    }
+}
+
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = 'doclogin.html';
+    }
+
+    // Single On-Load entry point
+    window.addEventListener('DOMContentLoaded', () => {
+        const today = new Date();
+        const dateField = document.getElementById('autoDate');
+        if(dateField) dateField.value = today.toLocaleDateString('en-GB');
+        
+        loadDoctorData();
+    });
+</script>
+</body>
+</html>

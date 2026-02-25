@@ -1,108 +1,85 @@
-const API_BASE = 'http://localhost:5000';
+const API_URL = 'http://localhost:5000/api/admin';
 
-window.addEventListener('DOMContentLoaded', () => {
-  loadOverview();
-  loadPendingDoctors();
-  setInterval(loadPendingDoctors, 5000); // simple "notification" polling
-});
+async function loadDoctors() {
+    try {
+        const res = await fetch(`${API_URL}/pending-doctors`);
+        const doctors = await res.json();
+        
+        const tables = {
+            pending: document.getElementById('pendingDoctorsTable'),
+            approved: document.getElementById('approvedDoctorsTable'),
+            rejected: document.getElementById('rejectedDoctorsTable')
+        };
 
-async function loadOverview() {
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/overview`);
-    const data = await res.json();
-    if (!res.ok || !data.success) return;
+        // Clear all tables before reloading
+        Object.values(tables).forEach(t => { if(t) t.innerHTML = ''; });
 
-    document.getElementById('totalDoctors').innerText = data.stats.totalDoctors;
-    document.getElementById('pendingDoctors').innerText = data.stats.pendingDoctors;
-    document.getElementById('totalPatients').innerText = data.stats.totalPatients;
-    document.getElementById('totalAppointments').innerText = data.stats.totalAppointments;
-  } catch (err) {
-    console.error('overview error', err);
-  }
-}
-
-async function loadPendingDoctors() {
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/doctors/pending`);
-    const data = await res.json();
-    if (!res.ok || !data.success) return;
-
-    const tbody = document.getElementById('pendingDoctorsTable');
-    tbody.innerHTML = '';
-
-    data.doctors.forEach(doc => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
+        doctors.forEach(doc => {
+            // Inside the row template in loadDoctors function
+const row = `
+    <tr>
         <td>Dr. ${doc.firstName} ${doc.lastName}</td>
         <td>${doc.specialization}</td>
-        <td>${doc.email}</td>
-        <td>${doc.experienceYears} yrs</td>
-        <td>${doc.clinicName}</td>
-        <td>${doc.registrationId}</td>
+        <td>${doc.experience || 0} Years</td> 
+        <td>${doc.registrationId || 'N/A'}</td> 
         <td>
-          <button class="btn btn-success" onclick="approveDoctor('${doc.email}')">Approve</button>
-          <button class="btn btn-danger" onclick="rejectDoctor('${doc.email}')">Reject</button>
+            ${doc.certificate ? `<a href="http://localhost:5000/${doc.certificate}" target="_blank" style="color:blue; text-decoration:underline;">View Doc</a>` : 'No File'}
         </td>
-      `;
-      tbody.appendChild(tr);
-    });
+        <td>${doc.email}</td>
+        <td>${doc.clinicName}</td>
+        <td>${renderStatusOrActions(doc)}</td>
+    </tr>`;
 
-    document.getElementById('pendingDoctors').innerText = data.doctors.length;
-  } catch (err) {
-    console.error('pending error', err);
-  }
-}
+            if (tables[doc.status]) {
+                tables[doc.status].innerHTML += row;
+            }
+        });
 
-async function approveDoctor(email) {
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/doctors/approve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      loadPendingDoctors();
-      loadOverview();
-      alert('Doctor approved');
-    } else {
-      alert(data.message || 'Error approving doctor');
+        // Update Counter Cards
+        document.getElementById('pendingCount').innerText = doctors.filter(d => d.status === 'pending').length;
+        document.getElementById('totalDocs').innerText = doctors.filter(d => d.status === 'approved').length;
+        document.getElementById('rejectedCount').innerText = doctors.filter(d => d.status === 'rejected').length;
+
+    } catch (err) {
+        console.error("Dashboard Sync Error:", err);
     }
-  } catch (err) {
-    console.error('approve error', err);
-  }
 }
 
-async function rejectDoctor(email) {
-  const confirmDelete = confirm(`Reject and remove doctor ${email}?`);
-  if (!confirmDelete) return;
-
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/doctors/reject`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      loadPendingDoctors();
-      loadOverview();
-      loadApprovedDoctors();
-      alert('Doctor rejected and removed');
+// admindash.js file
+function logoutAdmin() {
+    // 1. Remove the security keys from memory
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminEmail');
+    
+    // 2. Redirect back to login
+    window.location.href = 'admlogin.html';
+}
+function renderStatusOrActions(doc) {
+    if (doc.status === 'pending') {
+        return `
+            <button class="btn btn-success" onclick="updateStatus('${doc.email}', 'approved')">Approve</button>
+            <button class="btn btn-danger" onclick="updateStatus('${doc.email}', 'rejected')">Reject</button>`;
+    } else if (doc.status === 'approved') {
+        return `<span class="status-badge status-approved">Approved</span>`;
     } else {
-      alert(data.message || 'Error rejecting doctor');
+        return `
+            <span class="status-badge status-rejected">Rejected</span>
+            <button class="btn btn-secondary" onclick="updateStatus('${doc.email}', 'pending')">Undo</button>`;
     }
-  } catch (err) {
-    console.error('reject error', err);
-  }
 }
 
-// expose for inline onclick
-window.rejectDoctor = rejectDoctor;
+async function updateStatus(email, status) {
+    try {
+        await fetch(`${API_URL}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, status })
+        });
+        loadDoctors(); // Refresh immediately
+    } catch (err) {
+        alert("Action failed.");
+    }
+}
 
-
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  localStorage.removeItem('adminToken');
-  localStorage.removeItem('adminEmail');
-  window.location.href = 'admlogin.html';
-});
+// Initial Load
+loadDoctors();

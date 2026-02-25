@@ -6,19 +6,21 @@
     <title>AI Mental Health Assistant</title>
 
     <style>
+        /* Unified CareConnect Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #2d5a27, #1a3c15);
+            background: #f4f6fb;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            color: #333;
         }
 
         .chat-container {
@@ -26,175 +28,210 @@
             max-width: 500px;
             height: 90vh;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            border: 1px solid #e2e6f0;
         }
 
         .chat-header {
-            background: #1a3c15;
-            color: white;
-            padding: 18px;
-            text-align: center;
-            font-size: 22px;
-            font-weight: 700;
+            background: #fff;
+            color: #2a4d9b;
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 2px solid #f0f3ff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
 
         .chat-box {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            background: #f6fff6;
+            background: #fff;
         }
 
         .message {
-            max-width: 80%;
-            padding: 12px 15px;
+            max-width: 85%;
+            padding: 12px 16px;
             margin-bottom: 15px;
-            border-radius: 15px;
-            line-height: 1.4;
-            font-size: 15px;
+            border-radius: 8px;
+            line-height: 1.5;
+            font-size: 14px;
             animation: fadeIn 0.3s ease;
         }
 
-        .user {
-            background: #d2ffd2;
-            margin-left: auto;
-            border-bottom-right-radius: 3px;
+        .ai {
+            background: #f0f3ff; 
+            color: #333;
+            margin-right: auto;
+            border: 1px solid #e2e6f0;
         }
 
-        .ai {
-            background: #e8f5e8;
-            border-bottom-left-radius: 3px;
-            border: 1px solid #2d5a27;
+        .user {
+            background: #2a4d9b;
+            color: white;
+            margin-left: auto;
+        }
+
+        /* Demo Quick Actions Bar */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #fff;
+            border-top: 1px solid #f0f3ff;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .action-btn {
+            background: #f0f3ff;
+            color: #2a4d9b;
+            border: 1px solid #2a4d9b;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #2a4d9b;
+            color: white;
         }
 
         @keyframes fadeIn {
-            from {opacity: 0; transform: translateY(10px);}
+            from {opacity: 0; transform: translateY(5px);}
             to {opacity: 1; transform: translateY(0);}
         }
 
         .input-area {
             display: flex;
-            padding: 15px;
-            background: #eef9ee;
-            border-top: 2px solid #2d5a27;
+            padding: 16px;
+            background: #fff;
+            border-top: 1px solid #e2e6f0;
+            gap: 10px;
         }
 
         .input-area input {
             flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #2d5a27;
-            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #e2e6f0;
+            border-radius: 4px;
             outline: none;
-            font-size: 16px;
+            font-size: 14px;
+            background: #fcfdfe;
         }
+
+        .input-area input:focus { border-color: #2a4d9b; }
 
         .input-area button {
-            background: linear-gradient(135deg, #2d5a27, #1a3c15);
+            background: #2a4d9b;
             color: white;
-            margin-left: 10px;
-            padding: 12px 18px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 12px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: 0.2s;
+            font-size: 14px;
+            font-weight: bold;
         }
 
-        .input-area button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-        }
-
+        .chat-box::-webkit-scrollbar { width: 6px; }
+        .chat-box::-webkit-scrollbar-track { background: #f4f6fb; }
+        .chat-box::-webkit-scrollbar-thumb { background: #cbd2e1; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div class="chat-container">
-
-        <div class="chat-header">
-            AI Mental Health Assistant
-        </div>
+        <div class="chat-header">Mental Health AI Assistant</div>
 
         <div class="chat-box" id="chat-box">
             <div class="message ai">
-                👋 Hello! I'm here to listen.  
-                You can tell me what you're feeling right now.
+                👋 Hello! I'm your Mental Health Supporter. How are you feeling today?
             </div>
+        </div>
+
+        <div class="quick-actions">
+            <button class="action-btn" onclick="quickHelp('I am feeling very stressed')">Stress Relief</button>
+            <button class="action-btn" onclick="quickHelp('I am having a panic attack')">Panic Help</button>
+            <button class="action-btn" onclick="quickHelp('Show me a breathing exercise')">Breathing</button>
+            <button class="action-btn" onclick="quickHelp('I feel very low and sad')">Mood Support</button>
         </div>
 
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Type your feelings here...">
             <button id="sendBtn" onclick="sendMessage()">Send</button>
         </div>
-
     </div>
 
-   <script>
+    <script>
+        const API_BASE = 'http://localhost:5000';
 
-        // ADD USER & AI MESSAGE
         function addMessage(text, type) {
-            let chatBox = document.getElementById("chat-box");
-            let msg = document.createElement("div");
+            const chatBox = document.getElementById("chat-box");
+            const msg = document.createElement("div");
             msg.classList.add("message", type);
             msg.innerText = text;
             chatBox.appendChild(msg);
-
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // SIMPLE AI LOGIC
-        function getAIReply(userText) {
-            userText = userText.toLowerCase();
-
-            if (userText.includes("stress") || userText.includes("tired")) {
-                return "I'm sorry you're feeling stressed. Try deep breathing for 1 minute — it can calm your mind.";
-            } 
-            if (userText.includes("sad") || userText.includes("depressed")) {
-                return "It's okay to feel sad sometimes. You are not alone. Would you like some mood-lifting exercises?";
-            }
-            if (userText.includes("anxiety") || userText.includes("fear")) {
-                return "Anxiety can be overwhelming. Try grounding: Look around and name 5 things you can see.";
-            }
-
-            return "I understand. Please tell me more about what you're feeling.";
+        // Triggered by Quick Action buttons
+        function quickHelp(msg) {
+            document.getElementById("userInput").value = msg;
+            sendMessage();
         }
 
-        // SEND MESSAGE FUNCTION (FOR BUTTON + ENTER)
-        function sendMessage() {
-            let input = document.getElementById("userInput");
-            let text = input.value.trim();
-
+        async function sendMessage() {
+            const input = document.getElementById("userInput");
+            const text = input.value.trim();
             if (text === "") return;
 
-            // USER MESSAGE
             addMessage(text, "user");
-
-            // AI MESSAGE
-            setTimeout(() => {
-                let aiReply = getAIReply(text);
-                addMessage(aiReply, "ai");
-            }, 500);
-
             input.value = "";
+
+            const chatBox = document.getElementById("chat-box");
+            const thinking = document.createElement("div");
+            thinking.classList.add("message", "ai");
+            thinking.id = "thinking-bubble"; // ID for easier removal
+            thinking.innerText = "Analyzing your situation...";
+            chatBox.appendChild(thinking);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/ai/support`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                
+                const data = await res.json();
+                
+                // Remove the thinking bubble
+                const bubble = document.getElementById("thinking-bubble");
+                if (bubble) bubble.remove();
+
+                if (data.success) {
+                    addMessage(data.reply, "ai");
+                } else {
+                    addMessage("I'm having a little trouble connecting. Please try again.", "ai");
+                }
+            } catch (err) {
+                const bubble = document.getElementById("thinking-bubble");
+                if (bubble) bubble.remove();
+                addMessage("Connection error. Please ensure your backend is running.", "ai");
+            }
         }
 
-        // ENTER KEY TO SEND
-        const inputBox = document.getElementById("userInput");
-        const sendBtn = document.getElementById("sendBtn");
-
-        inputBox.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                sendBtn.click();
-            }
+        document.getElementById("userInput").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") sendMessage();
         });
-
     </script>
-
 </body>
 </html>

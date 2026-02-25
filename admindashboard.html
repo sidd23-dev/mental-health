@@ -1,248 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>CareConnect Admin Dashboard</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
+    <meta charset="UTF-8">
+    <title>Mental Health Admin Dashboard</title>
+    
+    <script>
+    // SECURITY GATE: This runs before any content is shown
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+        // If no token exists, send them back to login immediately
+        window.location.href = 'admlogin.html';
     }
+    </script>
 
-    body {
-      background: #f4f6fb;
-      color: #333;
-    }
+    <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { background: #f4f6fb; color: #333; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 10; }
+    .admin-header h1 { font-size: 22px; color: #2a4d9b; }
+    .admin-container { max-width: 1200px; margin: 24px auto; padding: 0 16px 32px; }
+    
+    .card-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+    .card { flex: 1 1 200px; background: #fff; border-radius: 8px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card h3 { font-size: 15px; color: #555; margin-bottom: 8px; }
+    .card p { font-size: 24px; font-weight: bold; color: #2a4d9b; }
+    
+    .section-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 24px; overflow-x: auto; }
+    .section-card h2 { font-size: 18px; margin-bottom: 16px; color: #2a4d9b; border-bottom: 1px solid #f0f3ff; padding-bottom: 10px; }
+    
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .data-table th, .data-table td { padding: 12px 10px; border-bottom: 1px solid #e2e6f0; text-align: left; }
+    .data-table th { background: #f0f3ff; font-weight: 600; color: #555; }
+    
+    .btn { padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 13px; font-weight: bold; margin-right: 5px; transition: 0.2s; }
+    .btn-danger { background: #e53935; color: #fff; }
+    .btn-success { background: #43a047; color: #fff; }
+    .btn-secondary { background: #78909c; color: #fff; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    /* Header */
-    .admin-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 32px;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+    .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+    .status-approved { background: #e8f5e9; color: #2e7d32; }
+    .status-rejected { background: #ffebee; color: #c62828; }
 
-    .admin-header h1 {
-      font-size: 22px;
-      color: #2a4d9b;
-    }
+    @media (max-width: 768px) { .card-row { flex-direction: column; } }
 
-    /* Container */
-    .admin-container {
-      max-width: 1200px;
-      margin: 24px auto;
-      padding: 0 16px 32px;
-    }
-
-    /* Cards row */
-    .card-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .card {
-      flex: 1 1 200px;
-      background: #fff;
-      border-radius: 8px;
-      padding: 16px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-
-    .card h3 {
-      font-size: 15px;
-      color: #555;
-      margin-bottom: 8px;
-    }
-
-    .card p {
-      font-size: 24px;
-      font-weight: bold;
-      color: #2a4d9b;
-    }
-
-    /* Section cards */
-    .section-card {
-      background: #fff;
-      border-radius: 8px;
-      padding: 16px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      margin-bottom: 24px;
-    }
-
-    .section-card h2 {
-      font-size: 18px;
-      margin-bottom: 12px;
-      color: #2a4d9b;
-    }
-
-    /* Table */
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    .data-table th,
-    .data-table td {
-      padding: 10px 8px;
-      border-bottom: 1px solid #e2e6f0;
-      text-align: left;
-    }
-
-    .data-table th {
-      background: #f0f3ff;
-      font-weight: 600;
-    }
-
-    /* Buttons */
-    .btn {
-      padding: 6px 12px;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    .btn-primary {
-      background: #2a4d9b;
-      color: #fff;
-    }
-
-    .btn-danger {
-      background: #e53935;
-      color: #fff;
-    }
-
-    .btn-success {
-      background: #43a047;
-      color: #fff;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .card-row {
-        flex-direction: column;
-      }
-    }
-  </style>
+</style>
 </head>
 <body>
   <header class="admin-header">
-    <h1>CareConnect Admin</h1>
-    <button id="logoutBtn" class="btn btn-danger">Logout</button>
-  </header>
-
+    <h1>Mental Health Admin</h1>
+    <button onclick="logoutAdmin()" class="btn btn-danger">Logout</button>
+</header>
   <main class="admin-container">
-    <!-- Summary cards -->
     <section class="card-row">
-      <div class="card">
-        <h3>Total Doctors</h3>
-        <p id="totalDoctors">0</p>
-      </div>
-      <div class="card">
-        <h3>Pending Doctors</h3>
-        <p id="pendingDoctors">0</p>
-      </div>
-      <div class="card">
-        <h3>Total Patients</h3>
-        <p id="totalPatients">0</p>
-      </div>
-      <div class="card">
-        <h3>Total Appointments</h3>
-        <p id="totalAppointments">0</p>
-      </div>
+      <div class="card"><h3>Active Doctors</h3><p id="totalDocs">0</p></div>
+      <div class="card"><h3>Pending Approvals</h3><p id="pendingCount">0</p></div>
+      <div class="card"><h3>Rejected Applications</h3><p id="rejectedCount">0</p></div>
     </section>
 
-    <!-- Pending doctors -->
-    <section class="section-card">
-      <h2>Pending Doctor Approvals</h2>
-      <table class="data-table">
-        <thead>
-  <tr>
-    <th>Name</th>
-    <th>Specialization</th>
-    <th>Email</th>
-    <th>Experience</th>
-    <th>Clinic</th>
-    <th>Reg ID</th>
-    <th>Actions</th>
-  </tr>
-</thead>
 
-        <tbody id="pendingDoctorsTable">
-          <!-- Example static row for now -->
-          <tr>
-            <td>Dr. Example</td>
-            <td>Cardiology</td>
-            <td>doctor@example.com</td>
-            <td>
-              <button class="btn btn-success">Approve</button>
-              <button class="btn btn-danger">Reject</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+<section class="section-card">
+  <h2>Pending Doctor Approvals</h2>
+  <table class="data-table"> <thead>
+      <tr>
+        <th>Name</th>
+        <th>Specialization</th>
+        <th>Experience</th>
+        <th>Reg ID</th>
+        <th>Certificate</th>
+        <th>Email</th>
+        <th>Clinic/Hospital</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="pendingDoctorsTable"></tbody>
+  </table>
+</section>
 
-    <!-- Approved doctors -->
-    <section class="section-card">
-      <h2>Approved Doctors</h2>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Specialization</th>
-            <th>Email</th>
-          </tr>
-        </thead>
-        <tbody id="approvedDoctorsTable">
-          <!-- Example static row for now -->
-          <tr>
-            <td>Dr. Sample</td>
-            <td>Dermatology</td>
-            <td>sampledoc@example.com</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+<section class="section-card">
+  <h2>Approved Doctors</h2>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Specialization</th>
+        <th>Experience</th>
+        <th>Reg ID</th>
+        <th>Email</th>
+        <th>Clinic/Hospital</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="approvedDoctorsTable"></tbody> </table>
+</section>
 
-    <!-- Appointments -->
-    <section class="section-card">
-      <h2>Appointments</h2>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Patient</th>
-            <th>Doctor</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="appointmentsTable">
-          <!-- Example static row for now -->
-          <tr>
-            <td>John Doe</td>
-            <td>Dr. Sample</td>
-            <td>2025-01-10</td>
-            <td>10:30</td>
-            <td>Scheduled</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
-
- <script src="admindash.js"></script>
-
+<section class="section-card">
+  <h2>Rejected Applications</h2>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Specialization</th>
+        <th>Experience</th>
+        <th>Reg ID</th>
+        <th>Email</th>
+        <th>Clinic/Hospital</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="rejectedDoctorsTable"></tbody>
+  </table>
+</section>
+  <script src="admindash.js"></script>
 </body>
 </html>

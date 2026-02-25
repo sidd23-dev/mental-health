@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
+        /* Updated to CareConnect Palette */
         *{margin:0;padding:0;box-sizing:border-box;}
         body{
             font-family: Arial, Helvetica, sans-serif;
-            background: linear-gradient(135deg,#2d5a27,#1a3c15);
+            background: #f4f6fb; /* CareConnect Background */
             height:100vh;
             display:flex;
             justify-content:center;
@@ -19,20 +20,21 @@
             width:360px;
             background:#ffffff;
             padding:28px 26px;
-            border-radius:14px;
-            box-shadow:0 10px 26px rgba(0,0,0,0.35);
+            border-radius:8px; /* Squared corners like dashboard cards */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); /* CareConnect Shadow */
+            border: 1px solid #e2e6f0;
         }
         .title{
             text-align:center;
             margin-bottom:4px;
             font-size:22px;
             font-weight:700;
-            color:#1a3c15;
+            color:#2a4d9b; /* CareConnect Primary Blue */
         }
         .subtitle{
             text-align:center;
             font-size:12px;
-            color:#666;
+            color:#555;
             margin-bottom:18px;
             letter-spacing:0.5px;
             text-transform:uppercase;
@@ -45,44 +47,44 @@
             font-size:13px;
             font-weight:600;
             margin-bottom:6px;
-            color:#1a3c15;
+            color:#2a4d9b;
         }
         input{
             width:100%;
             padding:9px 10px;
-            border:2px solid #dde2e6;
-            border-radius:7px;
+            border:1px solid #e2e6f0;
+            border-radius:4px;
             font-size:14px;
-            transition:border-color .2s, box-shadow .2s;
+            background: #fcfdfe;
+            transition: border-color .2s;
         }
         input:focus{
             outline:none;
-            border-color:#2d5a27;
-            box-shadow:0 0 0 2px rgba(45,90,39,0.18);
+            border-color:#2a4d9b;
+            box-shadow:0 0 0 2px rgba(42, 77, 155, 0.1);
         }
         .btn{
             width:100%;
             padding:11px;
             border:none;
-            border-radius:8px;
-            background:#2d5a27;
+            border-radius:4px;
+            background:#2a4d9b;
             color:#fff;
             font-size:15px;
             font-weight:600;
             cursor:pointer;
             margin-top:6px;
-            transition:background .2s, transform .1s, box-shadow .2s;
+            transition: background .2s;
         }
         .btn:hover{
-            background:#1a3c15;
-            transform:translateY(-1px);
-            box-shadow:0 8px 18px rgba(0,0,0,0.3);
+            background:#1e3a75;
         }
         .error{
             margin-top:6px;
-            color:#c62828;
+            color:#e53935; /* btn-danger color */
             font-size:12px;
             display:none;
+            text-align: center;
         }
         .row{
             display:flex;
@@ -154,10 +156,15 @@
             const data = await res.json();
 
             if(res.ok && data.success){
-                localStorage.setItem('adminEmail', data.email || email);
-                localStorage.setItem('adminToken', data.token || '');
-                window.location.href = 'admindashboard.html';
-            }else{
+    // 1. Save the key for the Security Gate
+    localStorage.setItem('adminToken', data.token || 'secure-admin-session');
+    localStorage.setItem('adminEmail', data.email || email);
+    
+    // 2. Go to the dashboard
+    window.location.href = 'admindashboard.html'; 
+}
+
+            else{
                 showError(data.message || 'Invalid admin credentials.');
                 btn.disabled = false;
                 btn.innerText = 'Login';

@@ -1,235 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Doctor Profile</title>
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-body{
-    font-family:Segoe UI, sans-serif;
-    background:linear-gradient(135deg,#2d5a27,#1a3c15);
-    min-height:100vh;
-    padding:30px;
-}
-.container{
-    max-width:800px;
-    margin:auto;
-    background:#fff;
-    padding:40px;
-    border-radius:20px;
-}
-.header{
-    text-align:center;
-    margin-bottom:20px;
-}
-.success-message{
-    display:none;
-    background:#d4edda;
-    color:#155724;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:20px;
-    text-align:center;
-}
-.success-message.show{
-    display:block;
-}
-.form-group{
-    margin-bottom:15px;
-}
-label{
-    font-weight:600;
-    margin-bottom:5px;
-    display:block;
-}
-input,select,textarea{
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:2px solid #ccc;
-}
-textarea{
-    min-height:80px;
-}
-.form-row{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
-}
-.section-title{
-    margin:20px 0 10px;
-    font-size:18px;
-    font-weight:700;
-}
-.button-section{
-    display:flex;
-    gap:15px;
-    margin-top:25px;
-}
-button{
-    padding:14px;
-    border:none;
-    border-radius:10px;
-    font-weight:700;
-    cursor:pointer;
-}
-.save-btn{
-    background:#2d5a27;
-    color:white;
-}
-.cancel-btn{
-    background:#ccc;
-}
-.edit-btn{
-    background:white;
-    border:2px solid #2d5a27;
-    color:#2d5a27;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Profile - Mental Health AI</title>
+    <style>
+        /* (I kept your exact same green styling here) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #1a3c15; font-size: 28px; margin-bottom: 5px; }
+        .header p { color: #2d5a27; font-size: 14px; }
+        .profile-photo-section { text-align: center; margin-bottom: 35px; }
+        .photo-container {
+            position: relative; width: 150px; height: 150px; margin: 0 auto 15px;
+            background: #f0f4ed; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; border: 4px solid #2d5a27; overflow: hidden;
+        }
+        .photo-container img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-placeholder { color: #2d5a27; font-size: 60px; }
+        .photo-upload-btn {
+            padding: 10px 20px; background: #2d5a27; color: white; border: none;
+            border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;
+        }
+        .form-section { margin-bottom: 25px; }
+        .form-section h3 {
+            color: #1a3c15; font-size: 17px; margin-bottom: 15px;
+            padding-bottom: 10px; border-bottom: 2px solid #e1e5e9;
+        }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; color: #1a3c15; font-weight: 500; font-size: 14px; }
+        input, select, textarea {
+            width: 100%; padding: 12px 14px; border: 2px solid #e1e5e9;
+            border-radius: 10px; font-size: 15px;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .buttons-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
+        .save-btn {
+            padding: 15px; background: linear-gradient(135deg, #2d5a27 0%, #1a3c15 100%);
+            color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;
+        }
+        .edit-btn {
+            padding: 15px; background: #fbbf24; color: #1a3c15;
+            border: none; border-radius: 12px; font-weight: 600; cursor: pointer;
+        }
+        .success-message {
+            display: none; background: #d4edda; border: 2px solid #28a745;
+            color: #155724; padding: 14px; border-radius: 10px; margin-bottom: 20px; text-align: center;
+        }
+        .success-message.show { display: block; }
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <div class="header">
+            <h1>Doctor Professional Profile</h1>
+            <p>Your details stay in the boxes after saving.</p>
+        </div>
 
-<div class="container">
+        <div class="success-message" id="successMsg">✓ Saved to Database successfully!</div>
 
-<div class="header">
-<h2>👨‍⚕️ Doctor Profile</h2>
-<p>Edit and save your professional details</p>
-</div>
+        <!-- IMPORTANT: The ID must match the JavaScript -->
+        <form id="doctorForm">
+            <div class="profile-photo-section">
+                <div class="photo-container" id="photoContainer">👨‍⚕️</div>
+                <input type="file" id="photoInput" name="photo" style="display:none">
+                <button type="button" class="photo-upload-btn" onclick="document.getElementById('photoInput').click()">Upload Photo</button>
+            </div>
 
-<div class="success-message" id="successMessage">
-✔ Profile saved successfully
-</div>
+            <div class="form-section">
+                <h3>Identity</h3>
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="fullName" name="fullName" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email * (The ID for your profile)</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone *</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                </div>
+            </div>
 
-<!-- BASIC INFO -->
-<div class="section-title">Basic Information</div>
+            <div class="form-section">
+                <h3>Professional Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Specialization</label>
+                        <input type="text" id="specialization" name="specialization">
+                    </div>
+                    <div class="form-group">
+                        <label>Years of Experience</label>
+                        <input type="text" id="experience" name="experience">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Short Bio</label>
+                    <textarea id="bio" name="bio"></textarea>
+                </div>
+            </div>
 
-<div class="form-group">
-<label>Full Name</label>
-<input type="text" id="fullName">
-</div>
+            <div class="buttons-section">
+                <!-- MUST be type="button" to prevent refresh -->
+                <button type="button" class="save-btn" id="saveBtn">Save Profile</button>
+                <button type="button" class="edit-btn" id="loadBtn">Load/Edit Profile</button>
+            </div>
+        </form>
+    </div>
 
-<div class="form-row">
-<div class="form-group">
-<label>Email</label>
-<input type="email" id="email">
-</div>
-<div class="form-group">
-<label>Phone</label>
-<input type="tel" id="phone">
-</div>
-</div>
+    <script>
+        const API_URL = "http://localhost:5000/api/doctor/profile";
 
-<div class="form-row">
-<div class="form-group">
-<label>Date of Birth</label>
-<input type="date" id="dob">
-</div>
-<div class="form-group">
-<label>Gender</label>
-<select id="gender">
-<option value="">Select</option>
-<option>Male</option>
-<option>Female</option>
-<option>Other</option>
-</select>
-</div>
-</div>
+        // 1. SAVE & UPDATE (FIXED TO NOT CLEAR FIELDS)
+        document.getElementById('saveBtn').addEventListener('click', async function(event) {
+            // STOP THE BROWSER FROM REFRESHING THE PAGE
+            event.preventDefault(); 
 
-<!-- PROFESSIONAL -->
-<div class="section-title">Professional Details</div>
+            const email = document.getElementById('email').value.trim();
+            if (!email) { alert("Please enter email!"); return; }
 
-<div class="form-group">
-<label>License Number</label>
-<input type="text" id="license">
-</div>
+            const successBox = document.getElementById('successMsg');
+            const saveBtn = document.getElementById('saveBtn');
 
-<div class="form-row">
-<div class="form-group">
-<label>Specialization</label>
-<select id="specialization">
-<option value="">Select</option>
-<option>Psychiatrist</option>
-<option>Psychologist</option>
-<option>Counselor</option>
-</select>
-</div>
-<div class="form-group">
-<label>Experience (Years)</label>
-<input type="number" id="experience">
-</div>
-</div>
+            const formData = new FormData(document.getElementById('doctorForm'));
 
-<div class="form-group">
-<label>Qualification</label>
-<input type="text" id="qualification">
-</div>
+            try {
+                saveBtn.textContent = "Saving to MongoDB...";
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
 
-<!-- HOSPITAL -->
-<div class="section-title">Hospital Details</div>
+                const data = await res.json();
 
-<div class="form-group">
-<label>Hospital Name</label>
-<input type="text" id="hospital">
-</div>
+                if (data.success) {
+                    successBox.classList.add('show');
+                    saveBtn.textContent = "Saved ✓";
+                    // WE DO NOT CALL form.reset() - THIS KEEPS THE FIELDS FULL
+                    setTimeout(() => {
+                        successBox.classList.remove('show');
+                        saveBtn.textContent = "Save Profile";
+                    }, 3000);
+                }
+            } catch (err) {
+                alert("Server error. Is your backend running?");
+            }
+        });
 
-<div class="form-group">
-<label>Hospital Address</label>
-<textarea id="address"></textarea>
-</div>
+        // 2. LOAD FOR EDITING
+        document.getElementById('loadBtn').addEventListener('click', async function() {
+            const email = document.getElementById('email').value.trim();
+            if (!email) { alert("Type your email first!"); return; }
 
-<!-- BUTTONS -->
-<div class="button-section">
-<button class="save-btn" onclick="saveProfile()">Save Profile</button>
-<button class="cancel-btn" onclick="cancelProfile()">Cancel</button>
-<button class="edit-btn" onclick="editProfile()">Edit Profile</button>
-</div>
+            try {
+                const res = await fetch(`${API_URL}/${email}`);
+                const data = await res.json();
 
-</div>
+                if (data.success && data.profile) {
+                    const p = data.profile;
+                    // Fill all the boxes back up
+                    document.getElementById('fullName').value = p.fullName || '';
+                    document.getElementById('email').value = p.email || '';
+                    document.getElementById('phone').value = p.phone || '';
+                    document.getElementById('specialization').value = p.specialization || '';
+                    document.getElementById('experience').value = p.experience || '';
+                    document.getElementById('bio').value = p.bio || '';
+                    
+                    if (p.photoPath) {
+                        document.getElementById('photoContainer').innerHTML = 
+                            `<img src="http://localhost:5000${p.photoPath}">`;
+                    }
+                    alert("Profile loaded! You can now edit and save.");
+                } else {
+                    alert("No profile found for this email.");
+                }
+            } catch (err) {
+                alert("Error connecting to database.");
+            }
+        });
 
-<script>
-const fields = document.querySelectorAll("input,select,textarea");
-
-function disableFields(){
-    fields.forEach(f => f.disabled = true);
-}
-
-function editProfile(){
-    fields.forEach(f => f.disabled = false);
-}
-
-function saveProfile(){
-    let data = {};
-    fields.forEach(f => {
-        data[f.id] = f.value;
-        f.disabled = true;
-    });
-    localStorage.setItem("doctorProfile", JSON.stringify(data));
-    document.getElementById("successMessage").classList.add("show");
-}
-
-function cancelProfile(){
-    let data = JSON.parse(localStorage.getItem("doctorProfile"));
-    if(data){
-        fields.forEach(f => f.value = data[f.id] || "");
-    }
-    disableFields();
-}
-
-window.onload = () => {
-    let data = JSON.parse(localStorage.getItem("doctorProfile"));
-    if(data){
-        fields.forEach(f => f.value = data[f.id] || "");
-    }
-    disableFields();
-};
-</script>
-
+        // Photo Preview
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => document.getElementById('photoContainer').innerHTML = `<img src="${e.target.result}">`;
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 </body>
 </html>

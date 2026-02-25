@@ -1,313 +1,455 @@
-require('dotenv').config();
-
 const express = require('express');
+const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
 const cors = require('cors');
-const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
+const User = require('./models/user'); 
+const Doctor = require('./models/doctor'); 
+const doctorProfileRouter = require('./routes/doctorprofile');
+const Slot = require('./models/slot');
+
+require('dotenv').config();
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
+// --- MIDDLEWARE ---
+app.use(express.json({ limit: '50mb' }));
 app.use(cors());
-app.use(bodyParser.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/doctor-profile', doctorProfileRouter);
 
-// ========== IN-MEMORY "DATABASE" ==========
-const patientsDB = {};   // patientsDB[email] = { firstName, lastName, email, password, isVerified }
-const patientOtpStore = {};  // patientOtpStore[email] = { otp, expiresAt }
+if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 
-const doctorsDB = {};    // doctorsDB[email] = { firstName, lastName, email, password, specialization, regId, isVerified, isApproved }
-const doctorOtpStore = {};   // doctorOtpStore[email] = { otp, expiresAt }
+// --- DATABASE ---
+mongoose.connect('mongodb://127.0.0.1:27017/aiHealDB')
+    .then(() => console.log("✅ MongoDB Connected"))
+    .catch(err => console.error("❌ MongoDB Error:", err));
 
-// ========== HELPERS ==========
-function generateOTP() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-}
+    // Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash",
+    systemInstruction: `You are the CareConnect AI Support. 
+    Your mission is to help patients with stress, anxiety, and depression.
+    - If a user feels anxious, suggest the 5-4-3-2-1 grounding or 4-7-8 breathing.
+    - If a user feels stressed, suggest box breathing.
+    - Always be empathetic and clear.
+    - Disclaimer: State you are an AI assistant, not a doctor.`
+});
 
+// --- STORAGE ---
+const storage = multer.diskStorage({
+    destination: './uploads/',
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+});
+const upload = multer({ storage });
+
+// --- EMAIL ---
+// --- EMAIL ---
 const transporter = nodemailer.createTransport({
     service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+    auth: { 
+        user: 'mentaalhealth2025@gmail.com', 
+        pass: 'kuwf pqpg bhxr kadx' 
     },
     tls: {
+       
         rejectUnauthorized: false
     }
 });
 
-// ========== TEST ROUTE ==========
-app.get('/', (req, res) => {
-    res.json({ message: 'Backend running' });
-});
+// --- USER ROUTES ---
 
-// ========== PATIENT ROUTES (SHORT VERSION) ==========
-// (Assume you already have them; not rewriting fully here)
-
-// ========== DOCTOR ROUTES ==========
-
-// 1) DOCTOR SIGNUP - save basic info, send OTP, mark as not verified & not approved
-app.post('/api/doctor/signup', async (req, res) => {
-    const {
-        firstName,
-        lastName,
-        email,
-        password,
-        age,
-        specialization,
-        experienceYears,
-        clinicName,
-        registrationId
-    } = req.body;
-
-    if (!firstName || !lastName || !email || !password || !age || !specialization || !experienceYears || !clinicName || !registrationId) {
-        return res.status(400).json({ message: 'All fields are required' });
-    }
-
-    // If already verified doctor exists
-    if (doctorsDB[email] && doctorsDB[email].isVerified) {
-        return res.status(400).json({ message: 'Doctor already registered. Please login.' });
-    }
-
-    // Save/overwrite doctor as unverified & not approved
-    doctorsDB[email] = {
-        firstName,
-        lastName,
-        email,
-        password,              // plain for demo
-        age,
-        specialization,
-        experienceYears,
-        clinicName,
-        registrationId,
-        isVerified: false,
-        isApproved: false,     // admin will set this to true
-        createdAt: new Date()
-    };
-
-    // Generate OTP
-    const otp = generateOTP();
-    const expiresAt = Date.now() + 10 * 60 * 1000;
-    doctorOtpStore[email] = { otp, expiresAt };
-
+app.post('/api/signup', upload.single('photo'), async (req, res) => {
     try {
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: 'Doctor Signup OTP - Mental Health App',
-            html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4;">
-                    <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px;">
-                        <h2 style="color: #2d5a27;">Verify Your Doctor Account</h2>
-                        <p>Hello Dr. ${firstName},</p>
-                        <p>Your OTP for doctor account verification is:</p>
-                        <h1 style="background: #2d5a27; color: white; padding: 15px; text-align: center; border-radius: 8px; letter-spacing: 5px;">
-                            ${otp}
-                        </h1>
-                        <p style="color: #666;">This OTP will expire in 10 minutes.</p>
-                        <p style="color: #666;">After verification, an admin will review and approve your account.</p>
-                    </div>
-                </div>
-            `
+        const { email } = req.body;
+        // Generate a 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // 1. Check if a VERIFIED user already exists
+        let user = await User.findOne({ email });
+        if (user && user.isVerified) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Email already registered." 
+            });
+        }
+
+        // 2. Prepare ALL data from the registration form
+        const userData = {
+            ...req.body, 
+            otp: otp,
+            isVerified: false,
+            // If a file is uploaded, use its path; otherwise keep existing or empty
+            photo: req.file ? req.file.path : (user ? user.photo : '')
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log(`Doctor signup OTP sent to ${email}: ${otp}`);
+        // 3. Use findOneAndUpdate with 'upsert'
+        // This saves the user and the OTP to the database BEFORE sending the email
+        await User.findOneAndUpdate({ email }, userData, { upsert: true, new: true });
 
-        return res.json({
-            success: true,
-            message: 'Doctor account created. OTP sent to email. Please verify.'
+        // 4. Send the OTP email using the transporter
+        // NOTE: Ensure your transporter has 'rejectUnauthorized: false' as shown below
+        await transporter.sendMail({
+            from: '"Mental Health Support" <mentaalhealth2025@gmail.com>',
+            to: email,
+            subject: "Your Verification Code",
+            text: `Your OTP is: ${otp}`
         });
+
+        res.status(200).json({ success: true, message: "OTP Sent" });
+
     } catch (err) {
-        console.error('Error sending doctor signup OTP:', err);
-        return res.status(500).json({ message: 'Failed to send OTP. Please try again.' });
+        console.error("Signup Error:", err);
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
-// 2) DOCTOR VERIFY SIGNUP OTP
-app.post('/api/doctor/verify-signup-otp', (req, res) => {
+app.post('/api/verify-otp', async (req, res) => {
     const { email, otp } = req.body;
-
-    if (!email || !otp) {
-        return res.status(400).json({ message: 'Email and OTP are required' });
+    const user = await User.findOne({ email, otp });
+    if (user) {
+        user.isVerified = true;
+        user.otp = "";
+        await user.save();
+        res.json({ success: true });
+    } else {
+        res.status(400).json({ success: false, message: "Invalid OTP" });
     }
-
-    const doctor = doctorsDB[email];
-    if (!doctor) {
-        return res.status(400).json({ message: 'Doctor not found. Please sign up again.' });
-    }
-
-    const stored = doctorOtpStore[email];
-    if (!stored) {
-        return res.status(400).json({ message: 'No OTP found. Please sign up again.' });
-    }
-
-    if (Date.now() > stored.expiresAt) {
-        delete doctorOtpStore[email];
-        return res.status(400).json({ message: 'OTP expired. Please sign up again.' });
-    }
-
-    if (stored.otp !== otp) {
-        return res.status(400).json({ message: 'Invalid OTP.' });
-    }
-
-    // Mark as verified (still waiting for admin approval)
-    doctor.isVerified = true;
-    delete doctorOtpStore[email];
-
-    console.log('Doctor email verified:', email);
-    return res.json({
-        success: true,
-        message: 'Email verified successfully! Please wait for admin approval.'
-    });
 });
 
-// 3) DOCTOR LOGIN - email + password only; must be verified AND approved
-app.post('/api/doctor/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password are required' });
+    // We find the user and send back ALL their data fields
+    const user = await User.findOne({ email, password, isVerified: true });
+    if (user) {
+        res.json({ success: true, user }); // This 'user' object now contains all fields
+    } else {
+        res.status(401).json({ success: false, message: "Invalid credentials or unverified account." });
     }
-
-    const doctor = doctorsDB[email];
-    if (!doctor) {
-        return res.status(400).json({ message: 'Invalid email or password' });
-    }
-
-    if (!doctor.isVerified) {
-        return res.status(400).json({ message: 'Email not verified. Please complete signup OTP.' });
-    }
-
-    if (!doctor.isApproved) {
-        return res.status(400).json({ message: 'Account pending admin approval.' });
-    }
-
-    if (doctor.password !== password) {
-        return res.status(400).json({ message: 'Invalid email or password' });
-    }
-
-    const token = Buffer.from(`${email}:${Date.now()}`).toString('base64');
-
-    console.log('Doctor logged in:', email);
-    return res.json({
-        success: true,
-        message: 'Login successful!',
-        token,
-        name: `Dr. ${doctor.firstName} ${doctor.lastName}`,
-        email
-    });
 });
 
-// ========== SIMPLE ADMIN ROUTES (FOR APPROVAL) ==========
+// Patient Profile Update Route ---
 
-// Get list of doctors waiting for approval
-app.get('/api/admin/doctors/pending', (req, res) => {
-    const pending = Object.values(doctorsDB).filter(d => d.isVerified && !d.isApproved);
-    return res.json({ success: true, doctors: pending });
+// --- Patient Profile Update with FULL Support ---
+// --- Patient Profile Update (Also apply similar logic to Doctor Update) ---
+app.put('/api/patient/update', upload.single('photo'), async (req, res) => {
+    try {
+        // Multer handles the parsing. If it's missing, req.body will be undefined.
+        if (!req.body) {
+            return res.status(400).json({ success: false, message: "No data received" });
+        }
+
+        const { email } = req.body; // Now req.body should be populated
+        
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required to update profile" });
+        }
+
+        let updateData = { ...req.body };
+
+        if (req.file) {
+            updateData.photo = req.file.path;
+        }
+
+        const updatedUser = await User.findOneAndUpdate(
+            { email: email },
+            updateData,
+            { new: true } 
+        );
+
+        res.json({ success: true, user: updatedUser });
+    } catch (err) {
+        console.error("Update Error:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+// --- AI CHAT ROUTE ---
+app.post('/api/ai/support', async (req, res) => {
+    try {
+        const { message } = req.body;
+        if (!message) return res.status(400).json({ success: false, message: "No message sent" });
+
+        const result = await model.generateContent(message);
+        const response = await result.response;
+        const text = response.text();
+
+        res.json({ success: true, reply: text });
+    } catch (error) {
+        console.error("AI Error:", error);
+        res.status(500).json({ success: false, message: "AI is offline. Please try again." });
+    }
 });
 
-// Approve a doctor by email
-app.post('/api/admin/doctors/approve', (req, res) => {
-    const { email } = req.body;
+// --- DOCTOR & ADMIN LOGIC ---
 
-    if (!email) {
-        return res.status(400).json({ message: 'Email is required' });
+app.post('/api/doctor/signup', upload.fields([
+    { name: 'photo', maxCount: 1 },
+    { name: 'certificate', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const { email } = req.body;
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        const docData = { 
+            ...req.body, 
+            otp, 
+            isVerified: false, 
+            status: 'pending',
+            photo: req.files['photo'] ? req.files['photo'][0].path : "",
+            certificate: req.files['certificate'] ? req.files['certificate'][0].path : "" 
+        };
+
+        await Doctor.findOneAndUpdate({ email }, docData, { upsert: true, new: true });
+        
+        // --- ADD THIS TO SEND THE EMAIL ---
+        await transporter.sendMail({
+            from: '"Mental Health Supporter" <mentaalhealth2025@gmail.com>',
+            to: email,
+            subject: "Doctor Verification Code",
+            text: `Your OTP for  registration is: ${otp}`
+        });
+
+        res.json({ success: true, message: "OTP Sent" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Error in Signup" });
     }
-
-    const doctor = doctorsDB[email];
-    if (!doctor) {
-        return res.status(400).json({ message: 'Doctor not found' });
-    }
-
-    if (!doctor.isVerified) {
-        return res.status(400).json({ message: 'Doctor not verified yet' });
-    }
-
-    doctor.isApproved = true;
-    console.log('Doctor approved by admin:', email);
-
-    return res.json({ success: true, message: 'Doctor approved successfully.' });
-});
-
-//===========admin login section========
-// ... existing requires, app = express(), middleware, patient/doctor routes ...
-// Reject (delete) a doctor by email
-app.post('/api/admin/doctors/reject', (req, res) => {
-    const { email } = req.body;
-
-    if (!email) {
-        return res.status(400).json({ message: 'Email is required' });
-    }
-
-    const doctor = doctorsDB[email];
-    if (!doctor) {
-        return res.status(400).json({ message: 'Doctor not found' });
-    }
-
-    delete doctorsDB[email];
-    console.log('Doctor rejected and removed by admin:', email);
-
-    return res.json({ success: true, message: 'Doctor rejected and removed.' });
 });
 
 
-// SIMPLE ADMIN ACCOUNT (in memory)
-const adminUser = {
-    adminId: 'ADM-001',
-    email: 'admin@example.com',
-    password: 'Admin@123'
-};
+// handle Doctor verification
+app.post('/api/doctor/verify-otp', async (req, res) => {
+    const { email, otp } = req.body;
+    try {
+        // We MUST search the Doctor model now
+        const doctor = await Doctor.findOne({ email, otp });
+        
+        if (doctor) {
+            doctor.isVerified = true;
+            doctor.otp = ""; // Clear OTP
+            await doctor.save();
+            res.json({ success: true, message: "Doctor verified successfully!" });
+        } else {
+            // This happens if the email/OTP combo isn't in the Doctor collection
+            res.status(400).json({ success: false, message: "Invalid OTP or Email" });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Server error during verification" });
+    }
+});
+// 3. Doctor Login
+app.post('/api/doctor/login', async (req, res) => {
+    const { email, password } = req.body;
+    const doc = await Doctor.findOne({ email, password, isVerified: true });
 
-// ADMIN LOGIN ROUTE
+    if (!doc) return res.status(401).json({ success: false, message: "Invalid credentials." });
+    
+    if (doc.status === 'pending') return res.status(403).json({ success: false, message: "Account pending admin approval." });
+    if (doc.status === 'rejected') return res.status(403).json({ success: false, message: "Account access rejected by admin." });
+
+    res.json({ success: true, doctor: doc });
+});
+
+//slot routes//
+app.post('/api/doctor/add-slot', async (req, res) => {
+    try {
+        const newSlot = new Slot(req.body);
+        await newSlot.save();
+        res.json({ success: true, message: "Slot Added" }); // This triggers the 'data.success' in JS
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Database error" });
+    }
+});
+
+
+// Route to get all doctors for the patient to see
+// server.js - Update this route
+app.get('/api/patient/available-doctors', async (req, res) => {
+    try {
+        // Change the query to allow both 'approved' and 'online' statuses
+        const doctors = await Doctor.find({ 
+            isVerified: true, 
+            status: { $in: ['approved', 'online'] } 
+        });
+        res.json(doctors);
+    } catch (err) {
+        res.status(500).json({ success: false });
+    }
+});
+app.get('/api/doctor/availability/:email', async (req, res) => {
+    try {
+        // Find all available slots for this doctor
+        // To show only the LATEST entry: .sort({ createdAt: -1 }).limit(1)
+        const slots = await Slot.find({ 
+            doctorEmail: req.params.email, 
+            status: 'available' 
+        }).sort({ createdAt: -1 });
+
+        if (!slots || slots.length === 0) return res.json([]);
+
+        // We will process the most recent slot entry
+        const latestSlot = slots[0];
+
+        const splitIntoHalfHourSlots = (startTime, endTime) => {
+            let intervals = [];
+            let start = new Date(`2000/01/01 ${startTime}`);
+            let end = new Date(`2000/01/01 ${endTime}`);
+            
+            if (end < start) end.setDate(end.getDate() + 1); // Handle overnight
+
+            while (start < end) {
+                let next = new Date(start.getTime() + 30 * 60000);
+                if (next > end) break;
+                
+                intervals.push({
+                    start: start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+                    end: next.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+                });
+                start = next;
+            }
+            return intervals;
+        };
+
+        const subSlots = splitIntoHalfHourSlots(latestSlot.startTime, latestSlot.endTime);
+        const processed = subSlots.map(sub => ({
+            _id: latestSlot._id,
+            date: latestSlot.date,
+            displayTime: `${sub.start} - ${sub.end}`,
+            startTime: sub.start
+        }));
+
+        res.json(processed);
+    } catch (err) {
+        res.status(500).json({ success: false });
+    }
+});
+// --- ADMIN LOGIN ROUTE ---
 app.post('/api/admin/login', (req, res) => {
     const { adminId, email, password } = req.body;
 
-    if (!adminId || !email || !password) {
-        return res.status(400).json({ success: false, message: 'Admin ID, email and password are required' });
-    }
-
+    // Check if the provided credentials match the hardcoded ones
     if (
-        adminId === adminUser.adminId &&
-        email === adminUser.email &&
-        password === adminUser.password
+        adminId === ADMIN_CREDENTIALS.adminId &&
+        email === ADMIN_CREDENTIALS.email &&
+        password === ADMIN_CREDENTIALS.password
     ) {
-        const token = Buffer.from(`${email}:${Date.now()}`).toString('base64');
-
-        return res.json({
+        // Successful login
+        res.json({
             success: true,
-            message: 'Admin login successful',
-            email,
-            token
+            message: "Admin access granted",
+            email: email,
+            token: "admin-session-secure-token" // You can use a real JWT here later
         });
     } else {
-        return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+        // Failed login
+        res.status(401).json({
+            success: false,
+            message: "Invalid Admin ID, Email, or Password."
+        });
     }
 });
 
-//admin dash===
-// ADMIN OVERVIEW (for dashboard cards)
-app.get('/api/admin/overview', (req, res) => {
-  const allDoctors = Object.values(doctorsDB);
-  const totalDoctors = allDoctors.filter(d => d.isApproved).length;
-  const pendingDoctors = allDoctors.filter(d => d.isVerified && !d.isApproved).length;
-
-  // For now, you don't track patients/appointments in this file,
-  // so set them to 0 (you can update later when you add them).
-  const totalPatients = Object.keys(patientsDB).length;
-  const totalAppointments = 0;
-
-  return res.json({
-    success: true,
-    stats: {
-      totalDoctors,
-      pendingDoctors,
-      totalPatients,
-      totalAppointments
-    },
-    appointments: [] // later you can send real appointments here
-  });
+// 4. Admin Dashboard
+-
+app.get('/api/admin/pending-doctors', async (req, res) => {
+    try {
+        // Fetch all doctors who have verified their email, regardless of approval status
+        const doctors = await Doctor.find({ isVerified: true });
+        res.json(doctors);
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Error fetching data" });
+    }
 });
 
-// ========== START SERVER ==========
-app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
+app.post('/api/admin/approve', async (req, res) => {
+    const { email, status } = req.body; 
+    try {
+        await Doctor.findOneAndUpdate({ email }, { status });
+        res.json({ success: true, message: `Doctor ${status}` });
+    } catch (err) {
+        res.status(500).json({ success: false });
+    }
 });
+
+
+// --- BOOKING LOGIC ---
+app.post('/api/bookings/create', async (req, res) => {
+    try {
+        const { slotId, patientEmail, timeSlot } = req.body;
+
+        // Find the slot and update its status
+        // Note: In a complex app, you'd create a separate 'Booking' model, 
+        // but for now, we update the Slot status.
+        const updatedSlot = await Slot.findByIdAndUpdate(slotId, {
+            status: 'booked',
+            patientEmail: patientEmail // You might need to add this field to your Slot Schema
+        }, { new: true });
+
+        if (!updatedSlot) {
+            return res.status(404).json({ success: false, message: "Slot not found" });
+        }
+
+        
+
+        res.json({ success: true, message: "Slot reserved successfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server error during booking" });
+    }
+});
+
+// 5. Doctor Profile Fetch
+app.get('/api/doctor/profile/:email', async (req, res) => {
+    try {
+        const doc = await Doctor.findOne({ email: req.params.email });
+        res.json(doc);
+    } catch (err) {
+        res.status(404).json({ message: "Doctor not found" });
+    }
+});
+
+// 6. Consolidated Doctor Profile Update (Crucial Fix)
+app.put('/api/doctor/update', upload.single('photo'), async (req, res) => {
+    try {
+        const { email } = req.body;
+        let updateData = { ...req.body };
+
+        // If a new photo was uploaded, update the path
+        if (req.file) {
+            updateData.photo = req.file.path;
+        }
+
+        const updatedDoctor = await Doctor.findOneAndUpdate(
+            { email: email }, 
+            updateData, 
+            { new: true } 
+        );
+
+        if (!updatedDoctor) return res.status(404).json({ success: false, message: "Doctor not found" });
+
+        res.json({ success: true, message: "Profile updated successfully", doctor: updatedDoctor });
+        
+    } catch (err) {
+        console.error("Update Error:", err);
+        res.status(500).json({ success: false, message: "Server error during update" });
+    }
+});
+
+app.put('/api/doctor/status', async (req, res) => {
+    try {
+        const { email, isOnline } = req.body;
+        // This updates the status field in your MongoDB
+        await Doctor.findOneAndUpdate({ email }, { 
+            status: isOnline ? 'online' : 'approved' 
+        });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false });
+    }
+});
+
+app.listen(5000, () => console.log(`🚀 Server running on http://127.0.0.1:5000`));

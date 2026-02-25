@@ -3,373 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Login</title>
-
+    <title>Patient Access - AI HEAL</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: linear-gradient(135deg, #2d5a27, #1a3c15);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    /* CareConnect Theme Integration - User Signup */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body { 
+        font-family: Arial, sans-serif; 
+        background: #f4f6fb; 
+        min-height: 100vh; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 20px; 
+    }
 
-        .container {
-            width: 380px;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            text-align: center;
-        }
+    .container { 
+        background: #ffffff; 
+        padding: 30px; 
+        border-radius: 8px; /* Squared corners matching dashboard */
+        width: 100%; 
+        max-width: 550px; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+        border: 1px solid #e2e6f0;
+    }
 
-        h2 {
-            color: #1a3c15;
-            margin-bottom: 20px;
-        }
-
-        .input-group {
-            text-align: left;
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .input-group input:focus {
-            border-color: #2d5a27;
-            outline: none;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background: #2d5a27;
-            border: none;
-            color: white;
-            font-size: 15px;
-            font-weight: bold;
-            border-radius: 8px;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            background: #1a3c15;
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .toggle-link {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #2d5a27;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .error {
-            color: red;
-            display: none;
-            margin-bottom: 10px;
-        }
-
-        .success {
-            color: green;
-            display: none;
-            margin-bottom: 10px;
-        }
-    </style>
+    h2 { 
+        color: #2a4d9b; /* CareConnect Primary Blue */
+        margin-bottom: 20px; 
+        text-align: center; 
+        font-weight: bold;
+    }
+    
+    .photo-preview { 
+        width: 100px; 
+        height: 100px; 
+        border-radius: 50%; 
+        background: #f0f3ff; 
+        border: 2px solid #2a4d9b; 
+        margin: 0 auto 15px; 
+        overflow: hidden; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 40px; 
+        color: #2a4d9b;
+    }
+    .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .signup-scroll { 
+        max-height: 400px; 
+        overflow-y: auto; 
+        padding-right: 10px; 
+        margin-bottom: 20px; 
+    }
+    /* CareConnect Custom Scrollbar */
+    .signup-scroll::-webkit-scrollbar { width: 5px; }
+    .signup-scroll::-webkit-scrollbar-track { background: #f4f6fb; }
+    .signup-scroll::-webkit-scrollbar-thumb { background: #2a4d9b; border-radius: 10px; }
+    
+    .section-tag { 
+        font-size: 11px; 
+        font-weight: 800; 
+        color: #2a4d9b; 
+        text-transform: uppercase; 
+        margin: 20px 0 10px; 
+        border-bottom: 1px solid #f0f3ff; 
+        letter-spacing: 1px; 
+        display: block; 
+    }
+    
+    input, select, textarea { 
+        width: 100%; 
+        padding: 12px; 
+        margin-bottom: 12px; 
+        border: 1px solid #e2e6f0; 
+        border-radius: 4px; 
+        font-size: 14px; 
+        background: #fcfdfe;
+        color: #333;
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #2a4d9b;
+        box-shadow: 0 0 0 2px rgba(42, 77, 155, 0.1);
+    }
+    
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    
+    .btn { 
+        width: 100%; 
+        padding: 15px; 
+        background: #2a4d9b; 
+        color: white; 
+        border: none; 
+        border-radius: 4px; 
+        font-weight: bold; 
+        cursor: pointer; 
+        transition: background 0.2s; 
+        font-size: 16px;
+    }
+    .btn:hover { background: #1e3a75; }
+    
+    .toggle-link { 
+        color: #2a4d9b; 
+        cursor: pointer; 
+        display: block; 
+        text-align: center; 
+        margin-top: 15px; 
+        font-weight: 600; 
+        font-size: 14px;
+        text-decoration: none;
+    }
+    .toggle-link:hover { text-decoration: underline; }
+</style>
 </head>
-
 <body>
 
 <div class="container">
-
-    <!-- LOGIN PAGE -->
-    <div id="loginPage">
+    <div id="loginView">
         <h2>Patient Login</h2>
-
-        <p class="error" id="loginError"></p>
-        <p class="success" id="loginSuccess"></p>
-
-        <div class="input-group">
-            <label>Email</label>
-            <input type="email" id="loginEmail" placeholder="Enter your email">
-        </div>
-
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter password">
-        </div>
-
-        <button class="btn" id="loginBtn" onclick="loginUser()">Login</button>
-
-        <p class="toggle-link" onclick="showSignup()">Create an account</p>
+        <input type="email" id="lEmail" placeholder="Email Address">
+        <input type="password" id="lPass" placeholder="Password">
+        <button class="btn" onclick="handleLogin()">Login</button>
+        <span class="toggle-link" onclick="showView('signupView')">Create New Account</span>
     </div>
 
-    <!-- SIGNUP PAGE -->
-    <div id="signupPage" style="display: none;">
-        <h2>Create Account</h2>
+    <div id="signupView" style="display:none">
+        <h2>Register Profile</h2>
+        <form id="signupForm">
+            <div class="photo-preview" id="photoPreview">👤</div>
+            <div style="text-align:center; margin-bottom:15px;">
+                <label style="background:#2d5a27; color:white; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
+                    Choose Photo <input type="file" name="photo" id="photoInput" accept="image/*" style="display:none">
+                </label>
+            </div>
 
-        <p class="error" id="signupError"></p>
-        <p class="success" id="signupSuccess"></p>
+            <div class="signup-scroll">
+                <span class="section-tag">Account Credentials</span>
+                <input type="email" name="email" id="sEmail" placeholder="Email Address *" required>
+                <div class="form-row">
+                    <input type="password" name="password" placeholder="Password *" required>
+                    <input type="password" placeholder="Confirm Password *" required>
+                </div>
 
-        <div class="input-group">
-            <label>First Name</label>
-            <input type="text" id="fname" placeholder="Enter first name">
-        </div>
+                <span class="section-tag">Personal Information</span>
+                <input type="text" name="fullName" placeholder="Full Name *" required>
+                <div class="form-row">
+                    <input type="date" name="dob" id="dob" required>
+                    <input type="number" name="age" id="age" placeholder="Age" readonly>
+                </div>
+                <div class="form-row">
+                    <select name="gender" required><option value="">Gender *</option><option>Male</option><option>Female</option></select>
+                    <select name="bloodGroup"><option value="">Blood Group</option><option>A+</option><option>B+</option><option>O+</option><option>AB+</option></select>
+                </div>
+                <input type="tel" name="phone" placeholder="Phone Number *" required>
 
-        <div class="input-group">
-            <label>Last Name</label>
-            <input type="text" id="lname" placeholder="Enter last name">
-        </div>
+                <span class="section-tag">Address</span>
+                <input type="text" name="address" placeholder="Street Address">
+                <div class="form-row">
+                    <input type="text" name="city" placeholder="City">
+                    <input type="text" name="state" placeholder="State">
+                </div>
 
-        <div class="input-group">
-            <label>Email</label>
-            <input type="email" id="signupEmail" placeholder="Enter email">
-        </div>
+                <span class="section-tag">Medical History</span>
+                <textarea name="allergies" placeholder="Any Allergies?"></textarea>
+                <textarea name="conditions" placeholder="Chronic Conditions"></textarea>
 
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="signupPassword" placeholder="Create password">
-        </div>
-
-        <div class="input-group">
-            <label>Confirm Password</label>
-            <input type="password" id="signupConfirmPassword" placeholder="Re-enter password">
-        </div>
-
-        <button class="btn" onclick="signupUser()">Sign Up & Send OTP</button>
-
-        <p class="toggle-link" onclick="showLogin()">Back to Login</p>
+                <span class="section-tag">Emergency Contact</span>
+                <input type="text" name="eName" placeholder="Contact Person Name">
+                <div class="form-row">
+                    <input type="text" name="eRelation" placeholder="Relationship">
+                    <input type="tel" name="ePhone" placeholder="Contact Phone">
+                </div>
+            </div>
+            <button type="button" class="btn" id="regBtn" onclick="triggerOTP(event)">Send OTP & Register</button>
+        </form>
+        <span class="toggle-link" onclick="showView('loginView')">Already have an account? Login</span>
     </div>
 
-    <!-- SIGNUP OTP VERIFY PAGE -->
-    <div id="otpPage" style="display: none;">
-        <h2>Verify Email</h2>
-
-        <p class="error" id="otpError"></p>
-        <p class="success" id="otpSuccess"></p>
-
-        <p style="font-size: 14px;">
-            OTP sent to <span id="otpEmailText" style="font-weight: bold;"></span>.
-        </p>
-
-        <div class="input-group">
-            <label>OTP</label>
-            <input type="text" id="signupOtp" placeholder="Enter OTP from email">
-        </div>
-
-        <button class="btn" onclick="verifySignupOtp()">Verify OTP</button>
-
-        <p class="toggle-link" onclick="showLogin()">Back to Login</p>
+    <div id="otpView" style="display:none; text-align:center;">
+        <h2>Verify OTP</h2>
+        <p style="margin-bottom:15px; font-size:14px;">Enter the verification code</p>
+        <input type="text" id="otpInp" maxlength="6" style="text-align:center; font-size:24px; letter-spacing:8px;">
+        <button class="btn" onclick="verifyAndFinish()">Verify & Complete</button>
     </div>
-
 </div>
 
 <script>
-    const API_URL = 'http://localhost:5000';
+    const API_URL = "http://127.0.0.1:5000/api";
 
-    let currentSignupEmail = "";
-
-    function showSignup() {
-        hideAllPages();
-        document.getElementById("signupPage").style.display = "block";
-        clearMessages();
+    const showView = (id) => {
+        document.querySelectorAll('#loginView, #signupView, #otpView').forEach(v => v.style.display='none');
+        document.getElementById(id).style.display = 'block';
     }
 
-    function showLogin() {
-        hideAllPages();
-        document.getElementById("loginPage").style.display = "block";
-        clearMessages();
+    // Photo Preview
+    document.getElementById('photoInput').addEventListener('change', function(e) {
+        const reader = new FileReader();
+        reader.onload = (event) => document.getElementById('photoPreview').innerHTML = `<img src="${event.target.result}">`;
+        reader.readAsDataURL(e.target.files[0]);
+    });
+
+    // Age Auto-calc
+    document.getElementById('dob').addEventListener('change', function() {
+        const age = new Date().getFullYear() - new Date(this.value).getFullYear();
+        document.getElementById('age').value = age;
+    });
+
+    async function triggerOTP(event) {
+    // 1. STOP the page from redirecting/refreshing
+    if (event) {
+        event.preventDefault(); 
+        console.log('Prevent default')
     }
 
-    function showOtpPage(email) {
-        hideAllPages();
-        currentSignupEmail = email;
-        document.getElementById("otpEmailText").innerText = email;
-        document.getElementById("otpPage").style.display = "block";
-        clearMessages();
+    const form = document.getElementById('signupForm');
+    
+    // 2. Check if all required fields are filled
+    if(!form.checkValidity()) {
+        form.reportValidity(); // This shows the "Please fill out this field" tooltips
+        return;
     }
 
-    function hideAllPages() {
-        document.getElementById("loginPage").style.display = "none";
-        document.getElementById("signupPage").style.display = "none";
-        document.getElementById("otpPage").style.display = "none";
-    }
+    const formData = new FormData(form);
+    const btn = document.getElementById('regBtn');
+    
+    // UI Feedback
+    btn.innerText = "Sending OTP...";
+    btn.disabled = true;
 
-    function clearMessages() {
-        document.querySelectorAll('.error, .success').forEach(el => {
-            el.style.display = 'none';
-            el.innerText = '';
+    try {
+        const res = await fetch(`${API_URL}/signup`, { 
+            method: 'POST', 
+            body: formData // Note: No headers needed for FormData, fetch adds them automatically
         });
-    }
-
-    function showError(id, msg) {
-        const el = document.getElementById(id);
-        el.innerText = msg;
-        el.style.display = "block";
-    }
-
-    function showSuccess(id, msg) {
-        const el = document.getElementById(id);
-        el.innerText = msg;
-        el.style.display = "block";
-    }
-
-    // SIGNUP: create account + send OTP
-    async function signupUser() {
-        clearMessages();
-
-        const fname = document.getElementById("fname").value.trim();
-        const lname = document.getElementById("lname").value.trim();
-        const email = document.getElementById("signupEmail").value.trim();
-        const pass = document.getElementById("signupPassword").value.trim();
-        const cpass = document.getElementById("signupConfirmPassword").value.trim();
-
-        if (!fname || !lname || !email || !pass || !cpass) {
-            showError("signupError", "All fields are required!");
-            return;
+        
+        const data = await res.json();
+        
+        if(data.success) {
+            localStorage.setItem('tempEmail', document.getElementById('sEmail').value);
+            showView('otpView'); // This will now work without the page refreshing!
+        } else {
+            alert("Signup failed: " + data.message);
         }
+    } catch (e) { 
+        console.error(e);
+        alert("Connection Error: Is your backend server running on port 5000?"); 
+    } finally {
+        btn.innerText = "Send OTP & Register";
+        btn.disabled = false;
+    }
+}
 
-        if (pass !== cpass) {
-            showError("signupError", "Passwords do not match!");
-            return;
-        }
-
+    async function verifyAndFinish() {
+        const email = localStorage.getItem('tempEmail');
+        const otp = document.getElementById('otpInp').value;
         try {
-            const res = await fetch(`${API_URL}/api/patient/signup`, {
+            const res = await fetch(`${API_URL}/verify-otp`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    firstName: fname,
-                    lastName: lname,
-                    email: email,
-                    password: pass
-                })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                // Clear signup form
-                document.getElementById("fname").value = "";
-                document.getElementById("lname").value = "";
-                document.getElementById("signupEmail").value = "";
-                document.getElementById("signupPassword").value = "";
-                document.getElementById("signupConfirmPassword").value = "";
-
-                // Go to OTP page
-                showOtpPage(email);
-            } else {
-                showError("signupError", data.message || "Signup failed!");
-            }
-        } catch (err) {
-            console.error("Signup error:", err);
-            showError("signupError", "Server error. Please try again.");
-        }
-    }
-
-    // VERIFY SIGNUP OTP
-    async function verifySignupOtp() {
-        clearMessages();
-
-        const otp = document.getElementById("signupOtp").value.trim();
-        const email = currentSignupEmail;
-
-        if (!email || !otp) {
-            showError("otpError", "Email or OTP missing.");
-            return;
-        }
-
-        try {
-            const res = await fetch(`${API_URL}/api/patient/verify-signup-otp`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ email, otp })
             });
-
             const data = await res.json();
-
-            if (res.ok) {
-                showSuccess("otpSuccess", data.message || "Email verified! You can now login.");
-                // After short delay, go to login page
-                setTimeout(showLogin, 1500);
-            } else {
-                showError("otpError", data.message || "OTP verification failed.");
-            }
-        } catch (err) {
-            console.error("OTP verify error:", err);
-            showError("otpError", "Server error. Please try again.");
-        }
+            if(data.success) {
+                alert("Account Verified Successfully!");
+                showView('loginView');
+            } else { alert("Invalid OTP"); }
+        } catch (e) { alert("Error connecting to server"); }
     }
 
-    // LOGIN (email + password only)
-    async function loginUser() {
-        clearMessages();
-
-        const email = document.getElementById("loginEmail").value.trim();
-        const password = document.getElementById("loginPassword").value.trim();
-
-        if (!email || !password) {
-            showError("loginError", "Enter email and password.");
-            return;
-        }
-
-        const btn = document.getElementById("loginBtn");
-        btn.disabled = true;
-        btn.innerText = "Logging in...";
-
+    async function handleLogin() {
+        const email = document.getElementById('lEmail').value;
+        const password = document.getElementById('lPass').value;
         try {
-            const res = await fetch(`${API_URL}/api/patient/login`, {
+            const res = await fetch(`${API_URL}/login`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ email, password })
             });
-
             const data = await res.json();
-
-            if (res.ok) {
-                localStorage.setItem('patientToken', data.token);
-                localStorage.setItem('patientEmail', data.email);
-                localStorage.setItem('patientName', data.name);
-
-                showSuccess("loginSuccess", data.message || "Login successful!");
-
-                setTimeout(() => {
-                    window.location.href = "patdash.html";
-                }, 1000);
-            } else {
-                showError("loginError", data.message || "Login failed.");
-                btn.disabled = false;
-                btn.innerText = "Login";
-            }
-        } catch (err) {
-            console.error("Login error:", err);
-            showError("loginError", "Server error. Please try again.");
-            btn.disabled = false;
-            btn.innerText = "Login";
-        }
+            if(data.success) {
+                localStorage.setItem('userData', JSON.stringify(data.user));
+                window.location.href = "patdash.html";
+            } else { alert(data.message); }
+        } catch (e) { alert("Login failed. Check server."); }
     }
 </script>
-
 </body>
 </html>
