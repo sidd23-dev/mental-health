@@ -5,6 +5,8 @@ const multer = require('multer');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const { createOrder } = require('./services/razorpay');
 const User = require('./models/user');
 const Doctor = require('./models/doctor');
 const doctorProfileRouter = require('./routes/doctorprofile');
@@ -770,6 +772,120 @@ app.post('/api/admin/approve', async (req, res) => {
     }
 });
 
+
+// --- RAZORPAY PAYMENT ROUTES ---
+
+// Step 1: Create a Razorpay order (called before showing the payment modal)
+app.post('/api/payment/create-order', async (req, res) => {
+    try {
+        const { slotId, patientEmail, timeSlot } = req.body;
+
+        // Diagnostic check: check if user hasn't replaced the placeholder in .env
+        if (process.env.KEY_SECRET === 'YOUR_RAZORPAY_KEY_SECRET_HERE') {
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Razorpay KEY_SECRET is not configured in .env. Please add your actual secret.' 
+            });
+        }
+
+        if (!slotId || !patientEmail || !timeSlot) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+
+        // Fetch the slot to confirm it still exists
+        const slot = await Slot.findById(slotId);
+        if (!slot) {
+            return res.status(404).json({ success: false, message: 'Slot not found' });
+        }
+
+        // Consultation fee: ₹500  (amount in paise)
+        const amount = 50000;
+        const order = await createOrder(amount, 'INR');
+
+        res.json({
+            success: true,
+            orderId: order.id,
+            amount: order.amount,
+            currency: order.currency,
+            key: process.env.KEY_ID
+        });
+    } catch (err) {
+        console.error('Create Order Error:', err);
+        let errorMsg = 'Failed to create payment order';
+        
+        // Check for common Razorpay errors to provide helpful feedback
+        if (err.statusCode === 401) {
+            errorMsg = 'Razorpay Authentication Failed: Your KEY_ID or KEY_SECRET is incorrect.';
+        } else if (err.error && err.error.description) {
+            errorMsg = `Razorpay Error: ${err.error.description}`;
+        } else if (err.message) {
+            errorMsg = `Error: ${err.message}`;
+        }
+        
+        res.status(500).json({ success: false, message: errorMsg });
+    }
+});
+
+// Step 2: Verify payment signature and create the appointment
+app.post('/api/payment/verify', async (req, res) => {
+    try {
+        const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature,
+            slotId,
+            patientEmail,
+            timeSlot
+        } = req.body;
+
+        // Verify HMAC-SHA256 signature
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.KEY_SECRET)
+            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            .digest('hex');
+
+        if (expectedSignature !== razorpay_signature) {
+            return res.status(400).json({ success: false, message: 'Payment verification failed. Invalid signature.' });
+        }
+
+        // Payment is verified — now create the appointment
+        const slot = await Slot.findById(slotId);
+        if (!slot) {
+            return res.status(404).json({ success: false, message: 'Associated slot block not found' });
+        }
+
+        const patient = await User.findOne({ email: patientEmail });
+        const patientName = patient ? patient.fullName : 'Unknown Patient';
+
+        const newAppointment = new Appointment({
+            doctorEmail: slot.doctorEmail,
+            patientName: patientName,
+            patientEmail: patientEmail,
+            appointmentDate: slot.date,
+            appointmentTime: timeSlot,
+            status: 'scheduled'
+        });
+
+        await newAppointment.save();
+
+        // Fetch doctor name for the email
+        const doctor = await Doctor.findOne({ email: slot.doctorEmail });
+        const doctorName = doctor ? `Dr. ${doctor.firstName} ${doctor.lastName}` : 'your doctor';
+
+        // Send confirmation email
+        await transporter.sendMail({
+            from: '"Mental Health Support" <mentaalhealth2025@gmail.com>',
+            to: patientEmail,
+            subject: 'Appointment Booking Confirmed',
+            text: `Hello ${patientName},\n\nYour appointment with ${doctorName} has been successfully booked and payment received.\n\nDate: ${slot.date}\nTime: ${timeSlot}\nPayment ID: ${razorpay_payment_id}\n\nThank you for choosing AI Heal.\n\nBest regards,\nMental Health Support Team`
+        });
+
+        res.json({ success: true, message: 'Payment verified and appointment created' });
+    } catch (err) {
+        console.error('Payment Verify Error:', err);
+        res.status(500).json({ success: false, message: 'Server error during verification' });
+    }
+});
 
 // --- BOOKING LOGIC ---
 app.post('/api/bookings/create', async (req, res) => {
