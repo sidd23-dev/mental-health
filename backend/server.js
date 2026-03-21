@@ -780,14 +780,6 @@ app.post('/api/payment/create-order', async (req, res) => {
     try {
         const { slotId, patientEmail, timeSlot } = req.body;
 
-        // Diagnostic check: check if user hasn't replaced the placeholder in .env
-        if (process.env.KEY_SECRET === 'YOUR_RAZORPAY_KEY_SECRET_HERE') {
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Razorpay KEY_SECRET is not configured in .env. Please add your actual secret.' 
-            });
-        }
-
         if (!slotId || !patientEmail || !timeSlot) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
@@ -798,15 +790,15 @@ app.post('/api/payment/create-order', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Slot not found' });
         }
 
-        // Consultation fee: ₹500  (amount in paise)
+        // Consultation fee: ₹500 (amount in paise)
         const amount = 50000;
         const order = await createOrder(amount, 'INR');
 
         res.json({
             success: true,
             orderId: order.id,
-            amount: order.amount,
-            currency: order.currency,
+            amount: 50000,
+            currency: 'INR',
             key: process.env.KEY_ID
         });
     } catch (err) {
@@ -863,7 +855,11 @@ app.post('/api/payment/verify', async (req, res) => {
             patientEmail: patientEmail,
             appointmentDate: slot.date,
             appointmentTime: timeSlot,
-            status: 'scheduled'
+            status: 'scheduled',
+            razorpay_order_id: razorpay_order_id,
+            razorpay_payment_id: razorpay_payment_id,
+            razorpay_signature: razorpay_signature,
+            amount: 500
         });
 
         await newAppointment.save();

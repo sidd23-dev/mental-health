@@ -7,6 +7,10 @@ const appointmentSchema = new mongoose.Schema({
     appointmentDate: String,
     appointmentTime: String,
     status: { type: String, default: 'scheduled' }, // scheduled, completed, cancelled
+    razorpay_order_id: String,
+    razorpay_payment_id: String,
+    razorpay_signature: String,
+    amount: Number,
     createdAt: { type: Date, default: Date.now }
 });
 
