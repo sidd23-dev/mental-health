@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { createOrder } = require('./services/razorpay');
+const { createZoomMeeting, endZoomMeeting } = require('./services/zoom');
 const User = require('./models/user');
 const Doctor = require('./models/doctor');
 const doctorProfileRouter = require('./routes/doctorprofile');
@@ -29,8 +30,8 @@ if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 
 // --- DATABASE ---
 mongoose.connect('mongodb://127.0.0.1:27017/aiHealDB')
-    .then(() => console.log("✅ MongoDB Connected"))
-    .catch(err => console.error("❌ MongoDB Error:", err));
+    .then(() => console.log("Ã¢Å“â€¦ MongoDB Connected"))
+    .catch(err => console.error("Ã¢ÂÅ’ MongoDB Error:", err));
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -400,7 +401,7 @@ app.get('/api/doctor/availability/:email', async (req, res) => {
 
         const splitIntoHalfHourSlots = (startTime, endTime) => {
             // Parse "HH:MM AM/PM" into total minutes from midnight.
-            // We CANNOT use new Date('2000/01/01 10:00 AM') — Node.js
+            // We CANNOT use new Date('2000/01/01 10:00 AM') Ã¢â‚¬â€ Node.js
             // does not reliably parse AM/PM in that format (returns Invalid Date).
             const parseToMins = (timeStr) => {
                 const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -459,7 +460,7 @@ app.get('/api/doctor/availability/:email', async (req, res) => {
                 endTime: latestSlot.endTime,
                 isActive: isActive
             },
-            slots: processed  // Always return slots — patients can book upcoming ones too
+            slots: processed  // Always return slots Ã¢â‚¬â€ patients can book upcoming ones too
         });
     } catch (err) {
         res.status(500).json({ success: false });
@@ -790,7 +791,7 @@ app.post('/api/payment/create-order', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Slot not found' });
         }
 
-        // Consultation fee: ₹500 (amount in paise)
+        // Consultation fee: Ã¢â€šÂ¹500 (amount in paise)
         const amount = 50000;
         const order = await createOrder(amount, 'INR');
 
@@ -840,7 +841,7 @@ app.post('/api/payment/verify', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Payment verification failed. Invalid signature.' });
         }
 
-        // Payment is verified — now create the appointment
+        // Payment is verified Ã¢â‚¬â€ now create the appointment
         const slot = await Slot.findById(slotId);
         if (!slot) {
             return res.status(404).json({ success: false, message: 'Associated slot block not found' });
@@ -1041,6 +1042,62 @@ app.get('/api/chat/unread-count/:email', async (req, res) => {
     } catch (err) {
         console.error("Error getting unread count:", err);
         res.status(500).json({ success: false, counts: {} });
+    }
+});
+
+
+// --- ZOOM VIDEO CONFERENCE ROUTES (Server-to-Server OAuth) ---
+
+// Doctor starts a Zoom meeting for an appointment
+app.post('/api/zoom/start-meeting/:appointmentId', async (req, res) => {
+    try {
+        const appointment = await Appointment.findById(req.params.appointmentId);
+        if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
+
+        if (appointment.zoomMeetingId && appointment.status === 'active') {
+            return res.json({ success: true, meetingId: appointment.zoomMeetingId, startUrl: appointment.zoomStartUrl, joinUrl: appointment.zoomJoinUrl, password: appointment.zoomPassword });
+        }
+
+        const topic = `Mental Health Consultation - ${appointment.patientName}`;
+        const meetingData = await createZoomMeeting(topic, appointment.patientName);
+
+        await Appointment.findByIdAndUpdate(req.params.appointmentId, { status: 'active', zoomMeetingId: String(meetingData.meetingId), zoomJoinUrl: meetingData.joinUrl, zoomStartUrl: meetingData.startUrl, zoomPassword: meetingData.password });
+
+        res.json({ success: true, meetingId: meetingData.meetingId, startUrl: meetingData.startUrl, joinUrl: meetingData.joinUrl, password: meetingData.password });
+    } catch (err) {
+        console.error('Zoom Start Meeting Error:', err.response ? err.response.data : err.message);
+        res.status(500).json({ success: false, message: 'Failed to create Zoom meeting: ' + (err.response ? JSON.stringify(err.response.data) : err.message) });
+    }
+});
+
+// Patient joins — verifies they are the booked patient
+app.post('/api/zoom/join-meeting/:appointmentId', async (req, res) => {
+    try {
+        const { patientEmail } = req.body;
+        const appointment = await Appointment.findById(req.params.appointmentId);
+        if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
+        if (appointment.patientEmail.toLowerCase() !== patientEmail.toLowerCase()) return res.status(403).json({ success: false, message: 'Access denied. You are not the patient for this appointment.' });
+        if (!appointment.zoomMeetingId || appointment.status !== 'active') return res.status(400).json({ success: false, message: 'The doctor has not started the meeting yet. Please wait a moment and try again.' });
+        res.json({ success: true, joinUrl: appointment.zoomJoinUrl, meetingId: appointment.zoomMeetingId, password: appointment.zoomPassword });
+    } catch (err) {
+        console.error('Zoom Join Meeting Error:', err);
+        res.status(500).json({ success: false, message: 'Failed to retrieve meeting info' });
+    }
+});
+
+// Doctor ends the meeting and marks session complete
+app.post('/api/zoom/end-meeting/:appointmentId', async (req, res) => {
+    try {
+        const appointment = await Appointment.findById(req.params.appointmentId);
+        if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
+        if (appointment.zoomMeetingId) {
+            try { await endZoomMeeting(appointment.zoomMeetingId); } catch (zoomErr) { console.warn('Zoom end meeting warning:', zoomErr.response ? zoomErr.response.data : zoomErr.message); }
+        }
+        await Appointment.findByIdAndUpdate(req.params.appointmentId, { status: 'completed' });
+        res.json({ success: true, message: 'Session ended and marked as completed.' });
+    } catch (err) {
+        console.error('Zoom End Meeting Error:', err);
+        res.status(500).json({ success: false, message: 'Failed to end meeting' });
     }
 });
 

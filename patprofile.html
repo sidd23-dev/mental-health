@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,7 @@
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             padding: 40px;
             backdrop-filter: blur(10px);
         }
@@ -126,7 +127,9 @@
             font-size: 14px;
         }
 
-        input, select, textarea {
+        input,
+        select,
+        textarea {
             width: 100%;
             padding: 12px 14px;
             border: 2px solid #e1e5e9;
@@ -136,7 +139,9 @@
             transition: all 0.3s ease;
         }
 
-        input:focus, select:focus, textarea:focus {
+        input:focus,
+        select:focus,
+        textarea:focus {
             outline: none;
             border-color: #2d5a27;
             box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.1);
@@ -240,6 +245,7 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -261,6 +267,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -386,7 +393,8 @@
 
             <div class="form-group">
                 <label>Chronic Conditions</label>
-                <textarea id="conditions" placeholder="List any chronic conditions (e.g., diabetes, hypertension)..."></textarea>
+                <textarea id="conditions"
+                    placeholder="List any chronic conditions (e.g., diabetes, hypertension)..."></textarea>
             </div>
 
             <div class="form-group">
@@ -430,25 +438,25 @@
 
     <script>
         // Auto-calculate age from DOB
-        document.getElementById('dob').addEventListener('change', function() {
+        document.getElementById('dob').addEventListener('change', function () {
             const dob = new Date(this.value);
             const today = new Date();
             let age = today.getFullYear() - dob.getFullYear();
             const monthDiff = today.getMonth() - dob.getMonth();
-            
+
             if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
                 age--;
             }
-            
+
             document.getElementById('age').value = age > 0 ? age : '';
         });
 
         // Handle photo upload
-        document.getElementById('photoInput').addEventListener('change', function(e) {
+        document.getElementById('photoInput').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = function (event) {
                     const photoContainer = document.getElementById('photoContainer');
                     photoContainer.innerHTML = '<img src="' + event.target.result + '" alt="Profile Photo">';
                 };
@@ -470,8 +478,50 @@
                 return;
             }
 
-            // Collect all form data
-            const profileData = {
-                fullName: fullName,
-                dob: dob,
-                age: document.
+        // Collect all form data
+        const profileData = {
+            fullName: fullName,
+            dob: dob,
+            age: document.getElementById('age').value,
+            gender: gender,
+            bloodGroup: document.getElementById('bloodGroup').value,
+            email: email,
+            phone: phone,
+            address: document.getElementById('address').value.trim(),
+            city: document.getElementById('city').value.trim(),
+            state: document.getElementById('state').value.trim(),
+            postalCode: document.getElementById('postalCode').value.trim(),
+            country: document.getElementById('country').value.trim(),
+            allergies: document.getElementById('allergies').value.trim(),
+            conditions: document.getElementById('conditions').value.trim(),
+            medications: document.getElementById('medications').value.trim(),
+            mentalHealth: document.getElementById('mentalHealth').value.trim(),
+            eName: document.getElementById('emergencyName').value.trim(),
+            eRelation: document.getElementById('emergencyRelation').value.trim(),
+            ePhone: document.getElementById('emergencyPhone').value.trim()
+        };
+
+        // Save to localStorage
+        localStorage.setItem('userData', JSON.stringify(profileData));
+
+        // Show success message
+        // Assuming there's a success message element with id 'successMessage'
+        // For this example, we'll just use an alert.
+        alert('Profile saved successfully!');
+        // const successMsg = document.getElementById('successMessage');
+        // successMsg.classList.add('show');
+
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+            window.location.href = 'patdash.html';
+        }, 2000);
+    }
+
+    function cancelProfile() {
+        if (confirm('Discard changes and return to dashboard?')) {
+            window.location.href = 'patdash.html';
+        }
+    }
+</script>
+</body>
+</html>

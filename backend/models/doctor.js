@@ -13,7 +13,11 @@ const doctorSchema = new mongoose.Schema({
     photo: String,
     otp: String,
     isVerified: { type: Boolean, default: false },
-    status: { type: String, default: 'pending' } // pending, approved, rejected
+    status: { type: String, default: 'pending' }, // pending, approved, rejected, online
+    // Zoom OAuth tokens
+    zoomAccessToken: String,
+    zoomRefreshToken: String,
+    zoomTokenExpiry: Date
 });
 
 module.exports = mongoose.model('Doctor', doctorSchema);

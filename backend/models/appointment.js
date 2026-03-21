@@ -6,11 +6,16 @@ const appointmentSchema = new mongoose.Schema({
     patientEmail: String,
     appointmentDate: String,
     appointmentTime: String,
-    status: { type: String, default: 'scheduled' }, // scheduled, completed, cancelled
+    status: { type: String, default: 'scheduled' }, // scheduled, active, completed, cancelled
     razorpay_order_id: String,
     razorpay_payment_id: String,
     razorpay_signature: String,
     amount: Number,
+    // Zoom meeting details
+    zoomMeetingId: String,
+    zoomJoinUrl: String,
+    zoomStartUrl: String,
+    zoomPassword: String,
     createdAt: { type: Date, default: Date.now }
 });
 

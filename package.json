@@ -12,6 +12,7 @@
   "dependencies": {
     "@google/genai": "^1.39.0",
     "@google/generative-ai": "^0.24.1",
+    "axios": "^1.13.6",
     "body-parser": "^2.2.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -20,6 +21,8 @@
     "mongoose": "^9.1.4",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.12",
-    "openai": "^6.15.0"
+    "nodemon": "^3.1.14",
+    "openai": "^6.15.0",
+    "razorpay": "^2.9.6"
   }
 }

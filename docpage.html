@@ -5,6 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Dashboard - AI HEAL</title>
+    <script>
+    // SECURITY GATE: Runs before any content is shown
+    (function() {
+        const docEmail = localStorage.getItem('docEmail');
+        if (!docEmail) {
+            window.location.replace('doclogin.html');
+        }
+    })();
+    </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* CareConnect Professional Theme Applied */
@@ -378,8 +387,10 @@
 <body>
 
     <div class="sidebar">
-        <div class="sidebar-header">
-            <h3>AI HEAL</h3>
+        <div class="sidebar-header" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <img src="./img/unnamed.png" alt="Logo"
+                style="height: 100px; width: auto; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
+            <h3 style="margin: 0; font-size: 20px; letter-spacing: 1px;">AI HEAL</h3>
         </div>
         <div class="nav-menu">
             <div class="nav-item active" onclick="switchView('dashboard', this)"><i data-lucide="layout-dashboard"></i>
@@ -395,7 +406,11 @@
 
     <div class="main-content">
         <div class="top-bar">
-            <div></div>
+            <div>
+                <h2
+                    style="color: #2a4d9b; font-weight: 800; letter-spacing: 1px; margin: 0; font-size: 22px; text-transform: uppercase;">
+                    Mental Health Supporter</h2>
+            </div>
             <div class="user-profile-header">
                 <span id="header-name" style="font-weight: 600; color: #1e293b;">Dr. Loading...</span>
                 <img id="header-img" src="https://via.placeholder.com/40" class="header-circle-img">
@@ -409,23 +424,23 @@
                         <div class="stat-icon" style="background: #f0f3ff; color: #2a4d9b;"><i
                                 data-lucide="calendar"></i></div>
                         <div>
-                            <h3>12</h3>
-                            <p style="font-size: 12px; color: #718096;">Total Bookings</p>
+                            <h3 id="stat-total-bookings">0</h3>
+                            <p style="font-size: 12px; color: #718096;">Upcoming Bookings</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="background: #f0f3ff; color: #2a4d9b;"><i data-lucide="users"></i>
                         </div>
                         <div>
-                            <h3>08</h3>
-                            <p style="font-size: 12px; color: #718096;">New Patients</p>
+                            <h3 id="stat-completed-sessions">0</h3>
+                            <p style="font-size: 12px; color: #718096;">Completed Sessions</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="background: #fff9e6; color: #f6ad55;"><i data-lucide="star"></i>
                         </div>
                         <div>
-                            <h3>4.9</h3>
+                            <h3 id="stat-rating">0.0</h3>
                             <p style="font-size: 12px; color: #718096;">Rating</p>
                         </div>
                     </div>
@@ -438,14 +453,14 @@
 
             <div id="profile" class="view">
                 <div class="profile-card" style="text-align: left;">
-                    <div style="text-align: center; margin-bottom: 20px;">
+                    <div
+                        style="position: relative; display: inline-block; margin-bottom: 20px; width: 100%; text-align: center;">
                         <img id="main-profile-pic" src="https://via.placeholder.com/150" class="main-profile-img">
-                        <div id="photoLabel" style="display:none;">
-                            <label for="newPhotoInput"
-                                style="cursor:pointer; color:#2a4d9b; font-size:12px; font-weight:bold;">Change
-                                Photo</label>
-                            <input type="file" id="newPhotoInput" style="display:none;" accept="image/*">
-                        </div>
+                        <label id="photoEditOverlay"
+                            style="display:none; position: absolute; bottom: 25px; right: calc(50% - 65px); background: #2a4d9b; color: white; border-radius: 50%; width: 36px; height: 36px; text-align: center; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                            <i data-lucide="camera" style="width: 18px; height: 18px; margin-top: 7px;"></i>
+                            <input type="file" id="newPhotoInput" accept="image/*" style="display:none">
+                        </label>
                     </div>
 
                     <h2 id="profile-display-name" style="color: #2a4d9b; text-align:center;">Dr. Name</h2>
@@ -481,12 +496,27 @@
                         </div>
                         <div class="input-group">
                             <label>Registration ID (Read Only)</label>
-                            <input type="text" id="edit-regid" readonly style="background: #f4f6fb;">
+                            <input type="text" id="edit-regid" readonly
+                                style="background: #f4f6fb; cursor: not-allowed;">
                         </div>
                         <div class="input-group">
                             <label>Email (Read Only)</label>
-                            <input type="email" id="edit-email" readonly style="background: #f4f6fb;">
+                            <input type="email" id="edit-email" readonly
+                                style="background: #f4f6fb; cursor: not-allowed;">
                         </div>
+                        <div class="input-group full-width" style="display: flex; gap: 15px; margin-top: 15px;">
+                            <button type="button" id="editProfileBtn" onclick="toggleEditProfile()" class="update-btn"
+                                style="flex: 1; background-color: #f6ad55; border: none;"><i data-lucide="edit-3"
+                                    style="width: 16px; height: 16px; margin-right: 5px; vertical-align: middle;"></i>
+                                Edit Profile</button>
+                            <button type="button" id="saveProfileBtn" onclick="saveDoctorProfile()" class="update-btn"
+                                style="flex: 1; display: none;"><i data-lucide="save"
+                                    style="width: 16px; height: 16px; margin-right: 5px; vertical-align: middle;"></i>
+                                Save Changes</button>
+                        </div>
+                        <p id="profileUpdateMsg"
+                            style="display: none; margin-top: 10px; font-size: 14px; font-weight: bold; text-align: center; color: #38a169; width: 100%;">
+                        </p>
                     </form>
                 </div>
             </div>
@@ -515,7 +545,8 @@
                         <div class="input-group">
                             <label>Start Time</label>
                             <div style="display: flex; gap: 5px;">
-                                <input type="time" id="slotStartTime" style="flex: 2;">
+                                <input type="time" id="slotStartTime"
+                                    style="flex: 2; padding: 12px; border-radius: 4px; border: 1px solid #e2e6f0; outline: none; transition: 0.3s; background: #fcfdfe;">
                                 <select id="startPeriod"
                                     style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #e2e6f0;">
                                     <option value="AM">AM</option>
@@ -527,7 +558,8 @@
                         <div class="input-group">
                             <label>End Time</label>
                             <div style="display: flex; gap: 5px;">
-                                <input type="time" id="manualEnd" style="flex: 2;">
+                                <input type="time" id="manualEnd"
+                                    style="flex: 2; padding: 12px; border-radius: 4px; border: 1px solid #e2e6f0; outline: none; transition: 0.3s; background: #fcfdfe;">
                                 <select id="endPeriod"
                                     style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #e2e6f0;">
                                     <option value="AM">AM</option>
@@ -548,17 +580,69 @@
                 </div>
             </div>
 
+            <div id="sessions" class="view">
+                <div class="profile-card" style="text-align: left;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #2a4d9b;">Your Scheduled Sessions</h3>
+                    </div>
+                    <div id="sessionsContainer" class="slot-grid">
+                        <p style="color: #718096; padding: 20px;">Loading sessions...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHAT MODAL -->
+            <div id="chatModal"
+                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center;">
+                <div
+                    style="background:#efeae2; border-radius:12px; width:400px; max-height:80vh; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+
+                    <div
+                        style="background:#2a4d9b; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:10; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <div style="display:flex; align-items:center;">
+                            <h3 id="chatModalName" style="margin:0; font-size:18px; font-weight:600; color:white;">
+                                Patient Name
+                            </h3>
+                        </div>
+                        <button onclick="closeChat()"
+                            style="background:transparent; border:none; color:white; cursor:pointer; padding:5px;">
+                            <i data-lucide="x" style="width:24px;"></i>
+                        </button>
+                    </div>
+
+                    <div id="chatMessages"
+                        style="flex:1; padding:20px 15px; background-image:url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-repeat:repeat; overflow-y:auto; min-height: 350px; display:flex; flex-direction:column; gap:12px;">
+                        <!-- Messages go here -->
+                    </div>
+
+                    <div style="padding:10px 15px; background:#f0f2f5; display:flex; gap:10px; align-items:flex-end;">
+                        <div
+                            style="flex:1; background:white; border-radius:24px; display:flex; padding:5px 15px; box-shadow: 0 1px 1px rgba(0,0,0,0.05); min-height:45px; align-items:center;">
+                            <input type="text" id="chatInput" placeholder="Type a message"
+                                style="flex:1; border:none; outline:none; font-size:15px; background:transparent;"
+                                onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                        </div>
+                        <button onclick="sendChatMessage()"
+                            style="background:#2a4d9b; color:white; border:none; width:46px; height:46px; border-radius:50%; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom:2px;">
+                            <i data-lucide="send" style="width:20px; margin-left:2px; margin-top:2px;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <script>
                 // Initialize Icons and Global Variables
                 lucide.createIcons();
                 const docEmail = localStorage.getItem('docEmail');
 
-                // Redirect if not logged in
-                if (!docEmail) {
-                    window.location.href = 'doclogin.html';
-                }
-
                 // --- NAVIGATION LOGIC ---
+                let currentChatSessionId = null;
+                let currentChatReceiver = null;
+                let chatPollInterval = null;
+                let badgePollInterval = null;
+                let unreadCounts = {}; // { sessionId: count }
+
                 function switchView(viewId, element) {
                     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
                     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -568,6 +652,9 @@
 
                     if (viewId === 'profile' || viewId === 'dashboard' || viewId === 'slots') {
                         loadDoctorData();
+                    }
+                    if (viewId === 'sessions') {
+                        loadSessions();
                     }
                 }
 
@@ -613,72 +700,418 @@
                                 label.className = "status-offline";
                             }
 
-                            // 2. FETCH SLOTS IMMEDIATELY
-                            loadExistingSlots();
+                            // 2. FETCH SLOTS IMMEDIATELY using verified email from DB
+                            loadExistingSlots(doc.email);
+
+                            // 3. FETCH DASHBOARD STATS
+                            try {
+                                const statsRes = await fetch(`http://localhost:5000/api/doctor/dashboard-stats/${docEmail}`);
+                                const statsData = await statsRes.json();
+                                if (statsData.success) {
+                                    document.getElementById('stat-total-bookings').innerText = statsData.stats.totalBookings;
+                                    document.getElementById('stat-completed-sessions').innerText = statsData.stats.completedSessions;
+                                    document.getElementById('stat-rating').innerText = statsData.stats.rating;
+                                }
+                            } catch (err) {
+                                console.error("Error loading stats:", err);
+                            }
                         }
                     } catch (err) {
                         console.error("Error loading doctor data:", err);
                     }
                 }
-                async function loadExistingSlots() {
+                async function loadExistingSlots(emailToUse) {
                     try {
-                        const res = await fetch(`http://localhost:5000/api/doctor/availability/${docEmail}`);
+                        const activeEmail = emailToUse || docEmail;
+                        if (!activeEmail) return;
+
+                        const res = await fetch(`http://localhost:5000/api/doctor/availability/${activeEmail}`);
                         const data = await res.json();
                         const container = document.getElementById('slotsContainer');
                         if (!container) return;
 
-                        container.innerHTML = "";
+                        container.innerHTML = '';
+                        const msgBox = document.getElementById('slotMsg');
 
+                        // No slot exists at all
                         if (!data.block) {
-                            container.innerHTML = "<p style='color: #718096; padding: 20px;'>No active slots found.</p>";
+                            container.innerHTML = "<p style='color: #718096; padding: 20px;'>No slots scheduled. Use the form above to add one.</p>";
+                            if (msgBox) msgBox.style.display = 'none';
                             return;
                         }
 
-                        const dateStr = data.block.date;
+                        // Clear any existing auto-refresh timers
+                        if (window.slotStartTimer) clearTimeout(window.slotStartTimer);
+                        if (window.slotExpirationTimer) clearTimeout(window.slotExpirationTimer);
+
                         const st = data.block.startTime;
                         const et = data.block.endTime;
+                        const isActive = data.block.isActive;
 
-                        // Parse end time to check if it has passed
-                        const now = new Date();
-                        const endTimeParts = et.match(/(\d+):(\d+)\s*(AM|PM)/i);
-                        let endHour = parseInt(endTimeParts[1], 10);
-                        const endMinute = parseInt(endTimeParts[2], 10);
-                        const endAmPm = endTimeParts[3].toUpperCase();
-
-                        if (endAmPm === 'PM' && endHour < 12) endHour += 12;
-                        if (endAmPm === 'AM' && endHour === 12) endHour = 0;
-
-                        const slotEndDate = new Date();
-                        const dateParts = dateStr.includes('/') ? dateStr.split('/') : dateStr.split('-');
-                        if (dateParts.length === 3) {
-                            if (dateStr.includes('/')) {
-                                // format is DD/MM/YYYY (en-GB)
-                                slotEndDate.setFullYear(parseInt(dateParts[2], 10));
-                                slotEndDate.setMonth(parseInt(dateParts[1], 10) - 1);
-                                slotEndDate.setDate(parseInt(dateParts[0], 10));
-                            } else {
-                                // format is YYYY-MM-DD
-                                slotEndDate.setFullYear(parseInt(dateParts[0], 10));
-                                slotEndDate.setMonth(parseInt(dateParts[1], 10) - 1);
-                                slotEndDate.setDate(parseInt(dateParts[2], 10));
-                            }
-                        }
-
-                        slotEndDate.setHours(endHour, endMinute, 0, 0);
-
-                        if (now > slotEndDate) {
-                            container.innerHTML = "<p style='color: #718096; padding: 20px;'>No active slots found.</p>";
-                        } else {
+                        if (!isActive) {
+                            // Slot exists but hasn't started yet — show scheduled card
                             container.innerHTML = `
-                                <div style="margin-top: 15px; padding: 20px; border-radius: 8px; font-size: 16px; font-weight: bold; text-align: center; background: #f0fff4; border: 1px solid #c6f6d5; color: #276749;">
-                                    Your time is scheduled from ${st} to ${et}.
+                                <div style="margin-top: 15px; padding: 20px; border-radius: 8px; font-size: 15px; font-weight: bold; text-align: center; background: #ebf4ff; border: 1px solid #bee3f8; color: #2b6cb0; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                                    <span style="font-size:13px; font-weight:600; color:#4299e1; text-transform:uppercase; letter-spacing:1px;">⏰ Scheduled</span>
+                                    <span>Your slot is set from <strong>${st}</strong> to <strong>${et}</strong>.<br><span style="font-size:13px; font-weight:400; color:#4a5568;">Patients can book once the slot begins.</span></span>
+                                    <button onclick="cancelSlot('${data.block._id}')" class="update-btn" style="background: #e53e3e; padding: 10px 20px; font-size: 14px; margin: 0; outline: none;">Cancel Slot</button>
                                 </div>
                             `;
+                            if (msgBox) msgBox.style.display = 'none';
+                            // Auto-refresh when slot becomes active
+                            // (re-fetch so the server switches it to isActive=true)
+                            const now = new Date();
+                            const parseT = (t, d) => {
+                                const p = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                                if (!p) return null;
+                                let h = parseInt(p[1]); const m = parseInt(p[2]); const ap = p[3].toUpperCase();
+                                if (ap === 'PM' && h < 12) h += 12; if (ap === 'AM' && h === 12) h = 0;
+                                const dt = new Date(); dt.setHours(h, m, 0, 0); return dt;
+                            };
+                            const startDate = parseT(st);
+                            if (startDate) {
+                                const delay = startDate.getTime() - now.getTime();
+                                if (delay > 0) window.slotStartTimer = setTimeout(() => loadExistingSlots(activeEmail), delay);
+                            }
+                        } else {
+                            // Slot is currently active — show green active card with Cancel
+                            container.innerHTML = `
+                                <div style="margin-top: 15px; padding: 20px; border-radius: 8px; font-size: 15px; font-weight: bold; text-align: center; background: #f0fff4; border: 1px solid #c6f6d5; color: #276749; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                                    <span style="font-size:13px; font-weight:600; color:#38a169; text-transform:uppercase; letter-spacing:1px;">🟢 Active Now</span>
+                                    <span>Your time slot is running from <strong>${st}</strong> to <strong>${et}</strong>.</span>
+                                    <button onclick="cancelSlot('${data.block._id}')" class="update-btn" style="background: #e53e3e; padding: 10px 20px; font-size: 14px; margin: 0; outline: none;">Cancel Slot</button>
+                                </div>
+                            `;
+                            if (msgBox) msgBox.style.display = 'none';
+                            // Auto-remove card when end time is reached
+                            const now = new Date();
+                            const parseT = (t) => {
+                                const p = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                                if (!p) return null;
+                                let h = parseInt(p[1]); const m = parseInt(p[2]); const ap = p[3].toUpperCase();
+                                if (ap === 'PM' && h < 12) h += 12; if (ap === 'AM' && h === 12) h = 0;
+                                const dt = new Date(); dt.setHours(h, m, 0, 0); return dt;
+                            };
+                            const endDate = parseT(et);
+                            if (endDate) {
+                                const remaining = endDate.getTime() - now.getTime();
+                                if (remaining > 0) window.slotExpirationTimer = setTimeout(() => loadExistingSlots(activeEmail), remaining);
+                            }
                         }
                     } catch (err) {
                         console.error("Error loading slots:", err);
                     }
                 }
+
+                async function loadSessions() {
+                    try {
+                        const res = await fetch(`http://localhost:5000/api/doctor/sessions/${docEmail}`);
+                        if (!res.ok) {
+                            throw new Error(`Server returned status: ${res.status}`);
+                        }
+                        const data = await res.json();
+                        const container = document.getElementById('sessionsContainer');
+                        if (!container) return;
+
+                        container.innerHTML = "";
+
+                        if (!data.success || !data.sessions || data.sessions.length === 0) {
+                            container.innerHTML = "<p style='color: #718096; padding: 20px;'>No upcoming sessions booked yet.</p>";
+                            return;
+                        }
+
+                        data.sessions.forEach(session => {
+                            const sessionCard = document.createElement('div');
+                            sessionCard.className = 'slot-item';
+                            sessionCard.style.flexDirection = 'column';
+                            sessionCard.style.alignItems = 'flex-start';
+                            sessionCard.style.gap = '10px';
+
+                            const unread = unreadCounts[session._id] || 0;
+
+                            sessionCard.innerHTML = `
+                                <div style="width: 100%;">
+                                    <h4 style="color: #2a4d9b; margin-bottom: 5px;">Patient: ${session.patientName}</h4>
+                                    <p style="font-size: 13px; color: #4a5568; margin-bottom: 3px;"><i data-lucide="mail" style="width:14px; height:14px; vertical-align:middle;"></i> ${session.patientEmail}</p>
+                                    <p style="font-size: 13px; color: #4a5568;"><i data-lucide="phone" style="width:14px; height:14px; vertical-align:middle;"></i> ${session.patientPhone}</p>
+                                    <p style="font-size: 13px; color: #4a5568; margin-top: 5px;"><strong>Date:</strong> ${session.appointmentDate}</p>
+                                    <p style="font-size: 13px; color: #4a5568;"><strong>Time:</strong> ${session.appointmentTime}</p>
+                                </div>
+                                <div style="width: 100%; display: flex; gap: 10px; margin-top: 10px;">
+                                    <button onclick="openChat('${session._id}', '${session.patientEmail}', '${session.patientName}')" class="update-btn" style="flex: 1; position: relative; background-color: #38a169; display: flex; justify-content: center; align-items: center; gap: 5px; padding: 10px;">
+                                        <i data-lucide="message-square" style="width: 16px; height: 16px;"></i> Chat
+                                        <span id="badge-${session._id}" style="display:${unread > 0 ? 'flex' : 'none'}; position:absolute; top:-8px; right:-8px; background:#e53e3e; color:white; font-size:11px; font-weight:bold; min-width:20px; height:20px; padding:0 4px; border-radius:10px; justify-content:center; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.3); border:2px solid white;">${unread}</span>
+                                    </button>
+                                    ${session.status === 'active'
+                                    ? `<button onclick="endMeet('${session._id}')" class="update-btn" style="flex: 1; background-color: #e53e3e; display: flex; justify-content: center; align-items: center; gap: 5px; padding: 10px;">
+                                            <i data-lucide="phone-off" style="width: 16px; height: 16px;"></i> End Session
+                                           </button>`
+                                    : `<button onclick="startMeet('${session._id}')" class="update-btn" style="flex: 1; background-color: #2a4d9b; display: flex; justify-content: center; align-items: center; gap: 5px; padding: 10px;">
+                                            <i data-lucide="video" style="width: 16px; height: 16px;"></i> Start Session
+                                           </button>`
+                                }
+                                </div>
+                            `;
+                            container.appendChild(sessionCard);
+                        });
+
+                        // Re-initialize icons for newly added elements
+                        lucide.createIcons();
+                    } catch (err) {
+                        console.error("Error loading sessions:", err);
+                        const container = document.getElementById('sessionsContainer');
+                        if (container) container.innerHTML = `<p style='color: #e53e3e; padding: 20px;'>Failed to load sessions. Please ensure your backend server is running.</p>`;
+                    }
+                }
+                async function startMeet(sessionId) {
+                    try {
+                        const btn = event.currentTarget;
+                        btn.disabled = true;
+                        btn.innerHTML = '<i data-lucide="loader" style="width:16px"></i> Starting...';
+
+                        const res = await fetch(`http://localhost:5000/api/zoom/start-meeting/${sessionId}`, {
+                            method: 'POST'
+                        });
+                        const data = await res.json();
+
+                        if (data.success) {
+                            window.open(data.startUrl, '_blank');
+                            alert(`✅ Zoom Meeting Started!\n\nMeeting ID: ${data.meetingId}\nPassword: ${data.password}\n\nThe patient will be able to join from their dashboard.\n\nThe meeting has opened in a new tab.`);
+                            loadSessions();
+                        } else {
+                            alert('❌ Failed to start meeting: ' + data.message);
+                            btn.disabled = false;
+                            btn.innerHTML = '<i data-lucide="video" style="width:16px"></i> Start Session';
+                            lucide.createIcons();
+                        }
+                    } catch (err) {
+                        console.error('Error starting session:', err);
+                        alert('Error connecting to server. Please try again.');
+                    }
+                }
+
+                async function endMeet(sessionId) {
+                    if (!confirm('Are you sure you want to end this session? This will close the Zoom meeting for all participants.')) return;
+                    try {
+                        const res = await fetch(`http://localhost:5000/api/zoom/end-meeting/${sessionId}`, {
+                            method: 'POST'
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            alert('✅ Session ended and marked as completed.');
+                            loadDoctorData();
+                            loadSessions();
+                        } else {
+                            alert('Failed to end session: ' + data.message);
+                        }
+                    } catch (err) {
+                        console.error('Error completing session:', err);
+                    }
+                }
+
+                async function fetchUnreadCounts() {
+                    if (!docEmail) return;
+                    try {
+                        const res = await fetch(`http://localhost:5000/api/chat/unread-count/${docEmail}`);
+                        const data = await res.json();
+                        if (data.success) {
+                            unreadCounts = data.counts;
+                            // Update each badge directly in the DOM — no full re-render needed
+                            Object.keys(data.counts).forEach(sessionId => {
+                                const badge = document.getElementById(`badge-${sessionId}`);
+                                if (badge) {
+                                    const count = data.counts[sessionId];
+                                    badge.innerText = count;
+                                    badge.style.display = count > 0 ? 'flex' : 'none';
+                                }
+                            });
+                            // Also hide badges for sessions with 0 unread
+                            document.querySelectorAll('[id^="badge-"]').forEach(el => {
+                                const sid = el.id.replace('badge-', '');
+                                if (!data.counts[sid]) el.style.display = 'none';
+                            });
+                        }
+                    } catch (e) { console.error("Error fetching unread counts", e); }
+                }
+
+                function openChat(sessionId, patientEmail, patientName) {
+                    currentChatSessionId = sessionId;
+                    currentChatReceiver = patientEmail;
+
+                    // Immediately hide badge on this session's chat button
+                    const badge = document.getElementById(`badge-${sessionId}`);
+                    if (badge) badge.style.display = 'none';
+                    unreadCounts[sessionId] = 0;
+
+                    document.getElementById('chatModalName').innerText = patientName && patientName !== 'undefined' ? patientName : 'Patient';
+                    document.getElementById('chatModal').style.display = 'flex';
+
+                    fetchMessages();
+                    chatPollInterval = setInterval(fetchMessages, 3000); // Poll every 3 seconds
+                }
+
+                function closeChat() {
+                    document.getElementById('chatModal').style.display = 'none';
+                    clearInterval(chatPollInterval);
+                    currentChatSessionId = null;
+                    currentChatReceiver = null;
+                    fetchUnreadCounts(); // Refresh badges after closing
+                }
+
+                async function fetchMessages() {
+                    if (!currentChatSessionId) return;
+
+                    // Mark as read immediately when polling
+                    await fetch('http://localhost:5000/api/chat/mark-read', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sessionId: currentChatSessionId, receiverEmail: docEmail })
+                    });
+
+                    try {
+                        const res = await fetch(`http://localhost:5000/api/chat/messages/${currentChatSessionId}`);
+                        const data = await res.json();
+
+                        if (data.success) {
+                            const chatBox = document.getElementById('chatMessages');
+                            chatBox.innerHTML = '';
+
+                            data.messages.forEach(msg => {
+                                const isMe = (msg.senderModel === 'Doctor') ||
+                                    (!msg.senderModel && String(msg.senderEmail).trim().toLowerCase() === String(docEmail).trim().toLowerCase());
+                                chatBox.innerHTML += `
+                                    <div style="display:flex; justify-content:${isMe ? 'flex-end' : 'flex-start'}; margin-bottom:4px;">
+                                        <div style="max-width:85%; padding:6px 9px; padding-bottom:8px; border-radius:8px; background:${isMe ? '#2a4d9b' : '#ffffff'}; color:${isMe ? '#ffffff' : '#111b21'}; font-size:14.5px; position:relative; box-shadow:0 1px 1px rgba(0,0,0,0.06); line-height:1.4; display:flex; flex-direction:column;">
+                                            <div style="word-wrap:break-word; margin-bottom:2px;">${msg.text}</div>
+                                            <div style="align-self:flex-end; font-size:10px; color:${isMe ? '#e2e8f0' : '#667781'}; display:flex; align-items:center; gap:3px; margin-top:2px;">
+                                                ${new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                ${isMe ? `<i data-lucide="check-check" style="width:14px; color:${msg.isRead ? '#ffffff' : '#94a3b8'};"></i>` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                            lucide.createIcons();
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch messages', e);
+                    }
+                }
+
+                async function sendChatMessage() {
+                    const input = document.getElementById('chatInput');
+                    const text = input.value.trim();
+                    if (!text || !currentChatSessionId) return;
+
+                    input.value = ''; // clear immediately
+
+                    try {
+                        await fetch('http://localhost:5000/api/chat/send', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                sessionId: currentChatSessionId,
+                                senderEmail: docEmail,
+                                receiverEmail: currentChatReceiver,
+                                senderModel: 'Doctor',
+                                text: text
+                            })
+                        });
+                        fetchMessages(); // refresh view right away
+                    } catch (e) {
+                        console.error('Failed to send message', e);
+                    }
+                }
+
+                function toggleEditProfile() {
+                    const isReadOnly = document.getElementById('edit-fname').readOnly;
+                    const fields = ['edit-fname', 'edit-lname', 'edit-clinic', 'edit-experience'];
+
+                    fields.forEach(id => {
+                        const el = document.getElementById(id);
+                        el.readOnly = !isReadOnly;
+                        el.style.background = isReadOnly ? '#ffffff' : '#f8f9fa';
+                        el.style.border = isReadOnly ? '1px solid #cbd5e1' : '1px solid transparent';
+                    });
+
+                    const spec = document.getElementById('edit-spec');
+                    spec.disabled = !isReadOnly;
+
+                    document.getElementById('editProfileBtn').style.display = isReadOnly ? 'none' : 'block';
+                    document.getElementById('saveProfileBtn').style.display = isReadOnly ? 'block' : 'none';
+                    document.getElementById('profileUpdateMsg').style.display = 'none';
+
+                    document.getElementById('photoEditOverlay').style.display = isReadOnly ? 'block' : 'none';
+                    const photo = document.getElementById('main-profile-pic');
+                    photo.style.border = isReadOnly ? "5px solid #2a4d9b" : "5px solid #f0f3ff";
+                }
+
+                async function saveDoctorProfile() {
+                    const btn = document.getElementById('saveProfileBtn');
+                    const msg = document.getElementById('profileUpdateMsg');
+                    btn.innerHTML = "Saving...";
+                    btn.disabled = true;
+
+                    const formData = new FormData();
+                    formData.append('firstName', document.getElementById('edit-fname').value);
+                    formData.append('lastName', document.getElementById('edit-lname').value);
+                    formData.append('clinicName', document.getElementById('edit-clinic').value);
+                    formData.append('experience', document.getElementById('edit-experience').value);
+                    formData.append('specialization', document.getElementById('edit-spec').value);
+
+                    const photoInput = document.getElementById('newPhotoInput');
+                    if (photoInput.files[0]) {
+                        formData.append('photo', photoInput.files[0]);
+                    }
+
+                    try {
+                        const res = await fetch(`http://localhost:5000/api/doctor/profile/${docEmail}`, {
+                            method: 'PUT',
+                            body: formData
+                        });
+                        const data = await res.json();
+
+                        if (data.success) {
+                            msg.style.color = '#38a169';
+                            msg.innerText = "Profile updated successfully!";
+                            msg.style.display = 'block';
+
+                            // The image update already happened locally via FileReader if a new file was selected.
+                            // However, we should also update the header image just in case.
+                            // If a photo was uploaded, it will be returned in the data.doctor object.
+                            const updatedDoc = data.doctor;
+                            const fullName = `Dr. ${updatedDoc.firstName} ${updatedDoc.lastName}`;
+                            document.getElementById('header-name').innerText = fullName;
+                            document.getElementById('profile-display-name').innerText = fullName;
+                            document.getElementById('profile-display-specialty').innerText = `${updatedDoc.specialization} | ${updatedDoc.clinicName}`;
+
+                            if (updatedDoc.photo) {
+                                const photoPath = `http://localhost:5000/${updatedDoc.photo.replace(/\\/g, '/')}`;
+                                document.getElementById('main-profile-pic').src = photoPath;
+                                document.getElementById('header-img').src = photoPath;
+                            }
+
+                            setTimeout(() => {
+                                toggleEditProfile(); // lock fields back
+                            }, 1500);
+                        } else {
+                            msg.style.color = '#e53e3e';
+                            msg.innerText = data.message || "Failed to update profile.";
+                            msg.style.display = 'block';
+                        }
+                    } catch (err) {
+                        console.error('Error updating profile:', err);
+                        msg.style.color = '#e53e3e';
+                        msg.innerText = "Error connecting to server.";
+                        msg.style.display = 'block';
+                    } finally {
+                        btn.innerHTML = `<i data-lucide="save" style="width: 16px; height: 16px; margin-right: 5px; vertical-align: middle;"></i> Save Changes`;
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    }
+                }
+
                 // --- ACTION LOGIC ---
                 async function updateOnlineStatus() {
                     const isOnline = document.getElementById('statusToggle').checked;
@@ -698,7 +1131,13 @@
                     }
                 }
                 async function saveSingleSlot() {
-                    const date = document.getElementById('autoDate').value;
+                    // Ensure date is set (in case DOMContentLoaded fired before this script)
+                    let date = document.getElementById('autoDate').value;
+                    if (!date) {
+                        date = new Date().toLocaleDateString('en-GB');
+                        document.getElementById('autoDate').value = date;
+                    }
+
                     const startVal = document.getElementById('slotStartTime').value;
                     const endVal = document.getElementById('manualEnd').value;
                     const startAMPM = document.getElementById('startPeriod').value;
@@ -707,8 +1146,19 @@
 
                     if (!startVal || !endVal) return alert("Please select both start and end times.");
 
-                    const startTimeFormatted = `${startVal} ${startAMPM}`;
-                    const endTimeFormatted = `${endVal} ${endAMPM}`;
+                    const addBtn = document.querySelector('button[onclick="saveSingleSlot()"]');
+                    if (addBtn) { addBtn.disabled = true; addBtn.innerText = 'Adding...'; }
+
+                    const formatTime = (time24, ampm) => {
+                        let [hours, minutes] = time24.split(':');
+                        hours = parseInt(hours, 10);
+                        hours = hours % 12;
+                        hours = hours ? hours : 12;
+                        return `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+                    };
+
+                    const startTimeFormatted = formatTime(startVal, startAMPM);
+                    const endTimeFormatted = formatTime(endVal, endAMPM);
 
                     const slotData = {
                         doctorEmail: docEmail,
@@ -726,28 +1176,49 @@
                         });
                         const data = await res.json();
 
-                        // Inside saveSingleSlot() in docpage.html
                         if (data.success || res.ok) {
-                            msgBox.innerText = "Slot Added Successfully!";
-                            msgBox.style.display = "block";
-                            msgBox.style.background = "#f0fff4";
-                            msgBox.style.color = "#276749";
-
-                            loadExistingSlots();
+                            loadExistingSlots(docEmail);
 
                             // Reset inputs
                             document.getElementById('slotStartTime').value = "";
                             document.getElementById('manualEnd').value = "";
-
-                            setTimeout(() => {
-                                msgBox.style.display = "none";
-                            }, 3000);
+                        } else {
+                            msgBox.innerText = data.message || "Failed to add slot.";
+                            msgBox.style.display = "block";
+                            msgBox.style.background = "#fff5f5";
+                            msgBox.style.color = "#c53030";
                         }
                     } catch (err) {
-                        msgBox.innerText = "Error connecting to server.";
+                        console.error('Add slot error:', err);
+                        msgBox.innerText = "Error connecting to server. Make sure backend is running.";
                         msgBox.style.display = "block";
                         msgBox.style.background = "#fff5f5";
                         msgBox.style.color = "#c53030";
+                    } finally {
+                        if (addBtn) { addBtn.disabled = false; addBtn.innerText = 'Add Slot'; }
+                    }
+                }
+
+                async function cancelSlot(id) {
+                    if (!confirm("Are you sure you want to cancel this availability slot?")) return;
+                    try {
+                        const res = await fetch(`http://localhost:5000/api/doctor/slot/${id}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            loadExistingSlots(docEmail);
+                            const msgBox = document.getElementById('slotMsg');
+                            msgBox.innerText = "Slot cancelled successfully.";
+                            msgBox.style.display = "block";
+                            msgBox.style.background = "#fff5f5";
+                            msgBox.style.color = "#c53030";
+                            setTimeout(() => { msgBox.style.display = 'none'; }, 3000);
+                        } else {
+                            alert(data.message || "Failed to cancel slot");
+                        }
+                    } catch (err) {
+                        alert("Error cancelling slot");
                     }
                 }
 
@@ -757,14 +1228,56 @@
                     window.location.href = 'doclogin.html';
                 }
 
+                // Set date immediately (DOMContentLoaded may have already fired for inline scripts)
+                (function setDateField() {
+                    const today = new Date();
+                    const dateField = document.getElementById('autoDate');
+                    if (dateField) dateField.value = today.toLocaleDateString('en-GB');
+                })();
+
                 // Single On-Load entry point
                 window.addEventListener('DOMContentLoaded', () => {
                     const today = new Date();
                     const dateField = document.getElementById('autoDate');
                     if (dateField) dateField.value = today.toLocaleDateString('en-GB');
 
+                    // Setup photo preview
+                    document.getElementById('newPhotoInput').addEventListener('change', function (e) {
+                        if (this.files && this.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = function (event) {
+                                document.getElementById('main-profile-pic').src = event.target.result;
+                                document.getElementById('header-img').src = event.target.result;
+                            };
+                            reader.readAsDataURL(this.files[0]);
+                        }
+                    });
+
                     loadDoctorData();
+
+                    // Start global badge polling (DOMContentLoaded fallback)
+                    if (!badgePollInterval) {
+                        fetchUnreadCounts();
+                        badgePollInterval = setInterval(fetchUnreadCounts, 5000);
+                    }
                 });
+
+                // Also start badge polling immediately (in case DOMContentLoaded already fired)
+                (function startBadgePolling() {
+                    if (!badgePollInterval && docEmail) {
+                        fetchUnreadCounts();
+                        badgePollInterval = setInterval(fetchUnreadCounts, 5000);
+                    }
+                })();
+
+                // --- LOGOUT ---
+                function logout() {
+                    if (confirm('Are you sure you want to logout?')) {
+                        localStorage.removeItem('docEmail');
+                        window.location.replace('doclogin.html');
+                    }
+                }
+
             </script>
 </body>
 
