@@ -30,8 +30,8 @@ if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 
 // --- DATABASE ---
 mongoose.connect('mongodb://127.0.0.1:27017/aiHealDB')
-    .then(() => console.log("Ã¢Å“â€¦ MongoDB Connected"))
-    .catch(err => console.error("Ã¢ÂÅ’ MongoDB Error:", err));
+    .then(() => console.log("✅¦ MongoDB Connected"))
+    .catch(err => console.error("❌ MongoDB Error:", err));
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -256,11 +256,6 @@ app.post('/api/doctor/login', async (req, res) => {
     if (doc.status === 'pending') return res.status(403).json({ success: false, message: "Account pending admin approval." });
     if (doc.status === 'rejected') return res.status(403).json({ success: false, message: "Account access rejected by admin." });
 
-    // Clear any stale/leftover available slots for this doctor on every login.
-    // This prevents a new account (or re-login) from seeing slot data from
-    // a previous session or a different doctor who shared the same email.
-    await Slot.deleteMany({ doctorEmail: email, status: 'available' });
-
     res.json({ success: true, doctor: doc });
 });
 
@@ -423,7 +418,7 @@ app.get('/api/doctor/availability/:email', async (req, res) => {
             };
 
             let startMins = parseToMins(startTime);
-            let endMins   = parseToMins(endTime);
+            let endMins = parseToMins(endTime);
             if (startMins === null || endMins === null) return [];
             if (endMins <= startMins) endMins += 24 * 60; // handle overnight slots
 
@@ -442,14 +437,18 @@ app.get('/api/doctor/availability/:email', async (req, res) => {
         let processed = [];
         subSlots.forEach(sub => {
             const displayTime = `${sub.start} - ${sub.end}`;
-            if (!bookedTimes.includes(displayTime)) {
-                processed.push({
-                    _id: latestSlot._id,
-                    date: latestSlot.date,
-                    displayTime: displayTime,
-                    startTime: sub.start
-                });
-            }
+            if (bookedTimes.includes(displayTime)) return; // already booked
+
+            // Filter out sub-slots whose start time has already passed
+            const subSlotStart = parseSlotTime(sub.start, latestSlot.date);
+            if (subSlotStart && now >= subSlotStart) return; // this sub-slot's window has started/passed
+
+            processed.push({
+                _id: latestSlot._id,
+                date: latestSlot.date,
+                displayTime: displayTime,
+                startTime: sub.start
+            });
         });
 
         res.json({
@@ -805,7 +804,7 @@ app.post('/api/payment/create-order', async (req, res) => {
     } catch (err) {
         console.error('Create Order Error:', err);
         let errorMsg = 'Failed to create payment order';
-        
+
         // Check for common Razorpay errors to provide helpful feedback
         if (err.statusCode === 401) {
             errorMsg = 'Razorpay Authentication Failed: Your KEY_ID or KEY_SECRET is incorrect.';
@@ -814,7 +813,7 @@ app.post('/api/payment/create-order', async (req, res) => {
         } else if (err.message) {
             errorMsg = `Error: ${err.message}`;
         }
-        
+
         res.status(500).json({ success: false, message: errorMsg });
     }
 });
